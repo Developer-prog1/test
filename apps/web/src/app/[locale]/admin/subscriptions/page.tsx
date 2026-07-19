@@ -1,10 +1,14 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../../../shared/api/client';
 import { Link } from '../../../../i18n/navigation';
+import { Pagination } from '../../../../shared/ui/pagination';
 import { Reveal } from '../../../../shared/ui/reveal';
+
+const PAGE_SIZE = 12;
 
 type SubRow = {
   id: string;
@@ -13,6 +17,13 @@ type SubRow = {
   startsAt: string;
   endsAt: string;
   gym: { id: string; name: string; slug: string };
+};
+
+type SubListResponse = {
+  items: SubRow[];
+  total: number;
+  page: number;
+  pageSize: number;
 };
 
 function statusLabel(
@@ -35,13 +46,26 @@ function statusLabel(
 
 export default function AdminSubscriptionsPage() {
   const t = useTranslations('admin');
+  const tGyms = useTranslations('gyms');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
   const qc = useQueryClient();
+  const [page, setPage] = useState(1);
 
   const subscriptions = useQuery({
-    queryKey: ['admin-subscriptions'],
-    queryFn: () => apiFetch<SubRow[]>('/admin/subscriptions'),
+    queryKey: ['admin-subscriptions', page, PAGE_SIZE],
+    queryFn: () =>
+      apiFetch<SubListResponse>(
+        `/admin/subscriptions?page=${page}&limit=${PAGE_SIZE}`,
+      ),
   });
+
+  useEffect(() => {
+    const total = subscriptions.data?.total;
+    if (total == null) return;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (page > totalPages) setPage(totalPages);
+  }, [subscriptions.data?.total, page]);
 
   const activate = useMutation({
     mutationFn: (gymId: string) =>
@@ -66,7 +90,15 @@ export default function AdminSubscriptionsPage() {
     );
   }
 
-  const items = subscriptions.data ?? [];
+  const items = subscriptions.data?.items ?? [];
+  const total = subscriptions.data?.total ?? 0;
+  const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const to = Math.min(page * PAGE_SIZE, total);
+
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   return (
     <div className="space-y-5">
@@ -77,7 +109,7 @@ export default function AdminSubscriptionsPage() {
         <p className="mt-1 text-sm text-[var(--muted)]">
           {subscriptions.isLoading
             ? t('loading')
-            : t('subCount', { count: items.length })}
+            : t('subCount', { count: total })}
         </p>
       </Reveal>
 
@@ -121,6 +153,19 @@ export default function AdminSubscriptionsPage() {
           </Reveal>
         ))}
       </div>
+
+      {!subscriptions.isLoading && total > 0 ? (
+        <Pagination
+          page={page}
+          pageSize={PAGE_SIZE}
+          total={total}
+          onPageChange={goToPage}
+          previousLabel={tGyms('prev')}
+          nextLabel={tGyms('next')}
+          pageLabel={tGyms('pageInfo', { from, to, total })}
+          ariaLabel={tCommon('pagination')}
+        />
+      ) : null}
     </div>
   );
 }

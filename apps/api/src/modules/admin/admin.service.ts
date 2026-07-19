@@ -139,12 +139,18 @@ export class AdminService {
     return updated;
   }
 
-  async listSubscriptions() {
-    return this.prisma.gymSubscription.findMany({
-      orderBy: { endsAt: 'desc' },
-      take: 100,
-      include: { gym: { select: { id: true, name: true, slug: true } } },
-    });
+  async listSubscriptions(page = 1, limit = 20) {
+    const { skip, take, page: p, pageSize } = paginate(page, limit);
+    const [items, total] = await Promise.all([
+      this.prisma.gymSubscription.findMany({
+        orderBy: { endsAt: 'desc' },
+        skip,
+        take,
+        include: { gym: { select: { id: true, name: true, slug: true } } },
+      }),
+      this.prisma.gymSubscription.count(),
+    ]);
+    return { items, total, page: p, pageSize };
   }
 
   async activateSubscription(actorId: string, gymId: string, months = 1) {

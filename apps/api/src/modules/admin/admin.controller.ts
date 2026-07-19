@@ -114,8 +114,14 @@ export class AdminController {
   }
 
   @Get('subscriptions')
-  subscriptions() {
-    return this.adminService.listSubscriptions();
+  subscriptions(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminService.listSubscriptions(
+      Number(page ?? 1),
+      Number(limit ?? 20),
+    );
   }
 
   @Post('subscriptions/activate')
