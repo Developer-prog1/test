@@ -41,6 +41,7 @@ class TrainerDto {
   @IsOptional() @IsString() photoUrl?: string;
   @IsOptional() @IsString() specialization?: string;
   @IsOptional() @IsString() bio?: string;
+  @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
 class UpdateTrainerDto {
@@ -48,6 +49,7 @@ class UpdateTrainerDto {
   @IsOptional() @IsString() photoUrl?: string;
   @IsOptional() @IsString() specialization?: string;
   @IsOptional() @IsString() bio?: string;
+  @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
 class PlanDto {

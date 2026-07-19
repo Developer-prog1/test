@@ -109,6 +109,7 @@ model Trainer {
   photoUrl       String?
   specialization String?
   bio            String?
+  isActive       Boolean @default(true)
 }
 
 model MembershipPlan {

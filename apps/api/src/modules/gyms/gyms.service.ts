@@ -106,6 +106,7 @@ export class GymsService {
     };
 
     const where: Prisma.TrainerWhereInput = {
+      isActive: true,
       gym: gymWhere,
     };
 
@@ -145,7 +146,7 @@ export class GymsService {
       },
       include: {
         media: { orderBy: { sortOrder: 'asc' } },
-        trainers: true,
+        trainers: { where: { isActive: true }, orderBy: { name: 'asc' } },
         plans: { where: { isActive: true }, orderBy: { priceAmd: 'asc' } },
         subscriptions: {
           where: { status: 'ACTIVE', endsAt: { gt: now } },
