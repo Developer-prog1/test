@@ -288,18 +288,16 @@ export default function OwnerGymPage() {
         <p className="text-sm text-[var(--accent)]">{t('saveSuccess')}</p>
       ) : null}
 
-      <Reveal delay={0.05}>
-        <OwnerGymForm
-          key={gym.data.id + String(gym.dataUpdatedAt)}
-          initial={initial}
-          submitting={save.isPending}
-          error={error}
-          onSubmit={(payload) => {
-            setSaved(false);
-            save.mutate(payload);
-          }}
-        />
-      </Reveal>
+      <OwnerGymForm
+        key={gym.data.id + String(gym.dataUpdatedAt)}
+        initial={initial}
+        submitting={save.isPending}
+        error={error}
+        onSubmit={(payload) => {
+          setSaved(false);
+          save.mutate(payload);
+        }}
+      />
     </div>
   );
 }

@@ -8,8 +8,8 @@ type RevealProps = {
   className?: string;
   delay?: number;
   y?: number;
-  /** Portion of element that must enter the viewport (0–1). */
-  amount?: number;
+  /** Portion of element that must enter the viewport (0–1), or "some"/"all". */
+  amount?: number | 'some' | 'all';
 };
 
 export function Reveal({
@@ -17,7 +17,7 @@ export function Reveal({
   className,
   delay = 0,
   y = 36,
-  amount = 0.2,
+  amount = 'some',
 }: RevealProps) {
   const reduce = useReducedMotion();
 
@@ -30,7 +30,7 @@ export function Reveal({
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount, margin: '0px 0px -8% 0px' }}
+      viewport={{ once: true, amount, margin: '0px 0px -4% 0px' }}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
