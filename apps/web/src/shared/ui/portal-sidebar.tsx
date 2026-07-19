@@ -172,17 +172,31 @@ export function PortalIcon({ children }: { children: ReactNode }) {
   );
 }
 
-/** Classic cog — shared Settings nav icon for all role sidebars. */
+/** Clean gear — matches product accent stroke style in portal nav. */
 export function SettingsNavIcon() {
   return (
-    <PortalIcon>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="h-4 w-4"
+    >
       <path
-        d="M10.3 3.2h3.4l.4 2.1a6.8 6.8 0 0 1 1.7 1l2-.9 1.7 2.9-1.6 1.4c.1.4.2.8.2 1.3s-.1.9-.2 1.3l1.6 1.4-1.7 2.9-2-.9a6.8 6.8 0 0 1-1.7 1l-.4 2.1h-3.4l-.4-2.1a6.8 6.8 0 0 1-1.7-1l-2 .9-1.7-2.9 1.6-1.4A6.5 6.5 0 0 1 5.5 12c0-.5.1-.9.2-1.3L4.1 9.3 5.8 6.4l2 .9a6.8 6.8 0 0 1 1.7-1l.4-2.1Z"
+        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
         stroke="currentColor"
-        strokeWidth="1.55"
+        strokeWidth="1.65"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="2.6" stroke="currentColor" strokeWidth="1.55" />
-    </PortalIcon>
+      <circle
+        cx="12"
+        cy="12"
+        r="3"
+        stroke="currentColor"
+        strokeWidth="1.65"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
