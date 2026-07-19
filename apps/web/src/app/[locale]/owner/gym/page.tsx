@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ApiError, apiFetch } from '../../../../shared/api/client';
 import { parseLocalizedInput } from '../../../../shared/lib/localize';
-import { parseWorkingHours } from '../../../../shared/lib/working-hours';
 import { Link } from '../../../../i18n/navigation';
 import {
   emptyOwnerGymForm,
@@ -24,16 +23,8 @@ type OwnerGymDetail = {
   phone: string | null;
   description: string | null;
   amenities: string[];
-  workingHours: unknown;
   moderationStatus: string;
   media: Array<{ id: string; url: string; sortOrder: number }>;
-  trainers: Array<{
-    id: string;
-    name: string;
-    photoUrl: string | null;
-    specialization: string | null;
-    bio: string | null;
-  }>;
   plans: Array<{
     id: string;
     title: string;
@@ -45,7 +36,6 @@ type OwnerGymDetail = {
 
 function mapGymToForm(gym: OwnerGymDetail): OwnerGymFormValues {
   const base = emptyOwnerGymForm();
-  const hours = parseWorkingHours(gym.workingHours);
   return {
     name: gym.name,
     city: gym.city,
@@ -54,37 +44,12 @@ function mapGymToForm(gym: OwnerGymDetail): OwnerGymFormValues {
     phone: gym.phone ?? '',
     description: parseLocalizedInput(gym.description),
     amenities: gym.amenities ?? [],
-    workingHours: {
-      mon: hours?.mon ?? base.workingHours.mon,
-      tue: hours?.tue ?? base.workingHours.tue,
-      wed: hours?.wed ?? base.workingHours.wed,
-      thu: hours?.thu ?? base.workingHours.thu,
-      fri: hours?.fri ?? base.workingHours.fri,
-      sat: hours?.sat ?? base.workingHours.sat,
-      sun: hours?.sun ?? base.workingHours.sun,
-      note:
-        typeof hours?.note === 'string'
-          ? hours.note
-          : hours?.note
-            ? JSON.stringify(hours.note)
-            : '',
-    },
     mediaUrls:
       gym.media.length > 0
         ? [...gym.media]
             .sort((a, b) => a.sortOrder - b.sortOrder)
             .map((item) => item.url)
         : [''],
-    trainers:
-      gym.trainers.length > 0
-        ? gym.trainers.map((item) => ({
-            id: item.id,
-            name: item.name,
-            photoUrl: item.photoUrl ?? '',
-            specialization: item.specialization ?? 'strength',
-            bio: item.bio ?? '',
-          }))
-        : base.trainers,
     plans:
       gym.plans.length > 0
         ? gym.plans.map((item) => ({
@@ -96,41 +61,6 @@ function mapGymToForm(gym: OwnerGymDetail): OwnerGymFormValues {
           }))
         : base.plans,
   };
-}
-
-async function syncTrainers(
-  initial: OwnerGymDetail['trainers'],
-  next: OwnerGymProfilePayload['trainers'],
-) {
-  const keptIds = new Set(
-    next.map((item) => item.id).filter((id): id is string => Boolean(id)),
-  );
-
-  for (const trainer of initial) {
-    if (!keptIds.has(trainer.id)) {
-      await apiFetch(`/owner/trainers/${trainer.id}`, { method: 'DELETE' });
-    }
-  }
-
-  for (const trainer of next) {
-    const body = {
-      name: trainer.name,
-      photoUrl: trainer.photoUrl,
-      specialization: trainer.specialization,
-      bio: trainer.bio,
-    };
-    if (trainer.id) {
-      await apiFetch(`/owner/trainers/${trainer.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      });
-    } else {
-      await apiFetch('/owner/trainers', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-    }
-  }
 }
 
 async function syncPlans(
@@ -183,7 +113,6 @@ async function saveOwnerGym(
       phone: payload.phone,
       description: payload.description,
       amenities: payload.amenities,
-      workingHours: payload.workingHours,
     }),
   });
 
@@ -192,7 +121,6 @@ async function saveOwnerGym(
     body: JSON.stringify({ urls: payload.mediaUrls }),
   });
 
-  await syncTrainers(gym.trainers, payload.trainers);
   await syncPlans(gym.plans, payload.plans);
 }
 

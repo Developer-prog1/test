@@ -1,6 +1,13 @@
 'use client';
 
-import { FormEvent, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import {
+  FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ChangeEvent,
+} from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ApiError, apiFetch, getAccessToken, setTokens } from '../api/client';
@@ -48,6 +55,14 @@ function syncSessionUser(data: SettingsProfile) {
   });
 }
 
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
+}
+
 export function SettingsForm() {
   const t = useTranslations('settings');
   const tNav = useTranslations('nav');
@@ -55,10 +70,12 @@ export function SettingsForm() {
   const tAuth = useTranslations('auth');
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isClient = useIsClient();
+  const hasToken = isClient && Boolean(getAccessToken());
 
   const me = useQuery({
     queryKey: ['auth-me'],
-    enabled: Boolean(getAccessToken()),
+    enabled: hasToken,
     queryFn: () => apiFetch<SettingsProfile>('/auth/me'),
   });
 
@@ -203,7 +220,11 @@ export function SettingsForm() {
     uploadAvatar.mutate(file);
   }
 
-  if (!getAccessToken()) {
+  if (!isClient || (hasToken && me.isLoading)) {
+    return <p className="text-[var(--muted)]">{t('loading')}</p>;
+  }
+
+  if (!hasToken) {
     return (
       <p className="text-[var(--muted)]">
         {t('loginRequired')}{' '}
@@ -212,10 +233,6 @@ export function SettingsForm() {
         </Link>
       </p>
     );
-  }
-
-  if (me.isLoading) {
-    return <p className="text-[var(--muted)]">{t('loading')}</p>;
   }
 
   if (me.isError || !me.data) {

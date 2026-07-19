@@ -1,5 +1,6 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch, getAccessToken } from '../../../shared/api/client';
@@ -25,18 +26,32 @@ function roleLabel(
   }
 }
 
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
+}
+
 export default function AccountPage() {
   const t = useTranslations('accountPage');
   const tNav = useTranslations('nav');
   const tCommon = useTranslations('common');
+  const isClient = useIsClient();
+  const hasToken = isClient && Boolean(getAccessToken());
 
   const me = useQuery({
     queryKey: ['auth-me'],
-    enabled: Boolean(getAccessToken()),
+    enabled: hasToken,
     queryFn: () => apiFetch<AuthUser>('/auth/me'),
   });
 
-  if (!getAccessToken()) {
+  if (!isClient || (hasToken && me.isLoading)) {
+    return <p className="text-[var(--muted)]">{t('loading')}</p>;
+  }
+
+  if (!hasToken) {
     return (
       <p className="text-[var(--muted)]">
         {t('loginRequired')}{' '}
@@ -45,10 +60,6 @@ export default function AccountPage() {
         </Link>
       </p>
     );
-  }
-
-  if (me.isLoading) {
-    return <p className="text-[var(--muted)]">{t('loading')}</p>;
   }
 
   if (me.isError || !me.data) {
