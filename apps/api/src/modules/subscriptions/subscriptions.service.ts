@@ -1,7 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { API_ERROR_CODES, SUBSCRIPTION_PRICE_AMD } from '@gymhub/shared';
+import {
+  API_ERROR_CODES,
+  getListingPackage,
+  LISTING_PACKAGES,
+  SUBSCRIPTION_PRICE_AMD,
+} from '@gymhub/shared';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OwnerService } from '../owner/owner.service';
@@ -29,17 +38,29 @@ export class SubscriptionsService {
     return {
       gymId: gym.id,
       priceAmd: this.priceAmd,
+      packages: LISTING_PACKAGES.map((item) => ({ ...item })),
       subscription,
     };
   }
 
-  async checkout(ownerId: string) {
+  async checkout(ownerId: string, packageId?: string) {
+    const pack = packageId
+      ? getListingPackage(packageId)
+      : getListingPackage('1m');
+
+    if (!pack) {
+      throw new BadRequestException({
+        code: API_ERROR_CODES.VALIDATION_ERROR,
+        message: 'Unknown listing package',
+      });
+    }
+
     const gym = await this.ownerService.requireGym(ownerId);
     const providerRef = `manual_${randomUUID()}`;
     const payment = await this.prisma.payment.create({
       data: {
         gymId: gym.id,
-        amountAmd: this.priceAmd,
+        amountAmd: pack.priceAmd,
         status: 'PENDING',
         provider: 'manual',
         providerRef,
@@ -47,14 +68,18 @@ export class SubscriptionsService {
     });
 
     // Manual provider: activate immediately (until real GW)
-    return this.activateFromPayment(providerRef, payment.id);
+    return this.activateFromPayment(providerRef, payment.id, pack.months);
   }
 
   async webhook(providerRef: string) {
     return this.activateFromPayment(providerRef);
   }
 
-  private async activateFromPayment(providerRef: string, paymentId?: string) {
+  private async activateFromPayment(
+    providerRef: string,
+    paymentId?: string,
+    months = 1,
+  ) {
     const payment = await this.prisma.payment.findFirst({
       where: paymentId ? { id: paymentId } : { providerRef },
     });
@@ -71,9 +96,22 @@ export class SubscriptionsService {
       });
     }
 
-    const startsAt = new Date();
+    const now = new Date();
+    const active = await this.prisma.gymSubscription.findFirst({
+      where: {
+        gymId: payment.gymId,
+        status: 'ACTIVE',
+        endsAt: { gt: now },
+      },
+      orderBy: { endsAt: 'desc' },
+    });
+
+    const startsAt =
+      active && active.endsAt.getTime() > now.getTime()
+        ? new Date(active.endsAt)
+        : now;
     const endsAt = new Date(startsAt);
-    endsAt.setMonth(endsAt.getMonth() + 1);
+    endsAt.setMonth(endsAt.getMonth() + months);
 
     const subscription = await this.prisma.gymSubscription.create({
       data: {
@@ -98,7 +136,20 @@ export class SubscriptionsService {
   }
 
   async adminActivate(gymId: string, months = 1, actorId: string) {
-    const startsAt = new Date();
+    const now = new Date();
+    const active = await this.prisma.gymSubscription.findFirst({
+      where: {
+        gymId,
+        status: 'ACTIVE',
+        endsAt: { gt: now },
+      },
+      orderBy: { endsAt: 'desc' },
+    });
+
+    const startsAt =
+      active && active.endsAt.getTime() > now.getTime()
+        ? new Date(active.endsAt)
+        : now;
     const endsAt = new Date(startsAt);
     endsAt.setMonth(endsAt.getMonth() + months);
 
@@ -106,7 +157,7 @@ export class SubscriptionsService {
       data: {
         gymId,
         status: 'ACTIVE',
-        priceAmd: this.priceAmd,
+        priceAmd: this.priceAmd * months,
         startsAt,
         endsAt,
       },

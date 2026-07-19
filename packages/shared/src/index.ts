@@ -82,3 +82,37 @@ export const API_ERROR_CODES = {
 export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
 
 export const SUBSCRIPTION_PRICE_AMD = 10_000;
+
+/** Platform listing packages (GYM → GymHub). Prices in AMD. */
+export const LISTING_PACKAGES = [
+  {
+    id: '1m',
+    months: 1,
+    priceAmd: 10_000,
+    popular: false,
+  },
+  {
+    id: '3m',
+    months: 3,
+    priceAmd: 27_000,
+    popular: true,
+  },
+  {
+    id: '6m',
+    months: 6,
+    priceAmd: 51_000,
+    popular: false,
+  },
+  {
+    id: '12m',
+    months: 12,
+    priceAmd: 90_000,
+    popular: false,
+  },
+] as const;
+
+export type ListingPackageId = (typeof LISTING_PACKAGES)[number]['id'];
+
+export function getListingPackage(id: string) {
+  return LISTING_PACKAGES.find((item) => item.id === id);
+}

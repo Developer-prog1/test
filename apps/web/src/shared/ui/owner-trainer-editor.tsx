@@ -475,25 +475,6 @@ export function OwnerTrainerPreviewModal({
     },
   });
 
-  const toggleActive = useMutation({
-    mutationFn: () => {
-      if (!trainer) throw new Error('No trainer');
-      return apiFetch<OwnerTrainer>(`/owner/trainers/${trainer.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ isActive: !isTrainerActive(trainer) }),
-      });
-    },
-    onSuccess: () => {
-      setError(null);
-      onChanged();
-    },
-    onError: (err: unknown) => {
-      setError(
-        err instanceof ApiError ? err.message : t('trainerToggleFailed'),
-      );
-    },
-  });
-
   const active = trainer ? isTrainerActive(trainer) : false;
 
   return (
@@ -572,23 +553,6 @@ export function OwnerTrainerPreviewModal({
                   ) : (
                     <p className="text-sm text-[var(--muted)]">{t('noTrainerBio')}</p>
                   )}
-                  {error ? (
-                    <p className="text-sm text-[var(--accent-hot)]">{error}</p>
-                  ) : null}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <button
-                      type="button"
-                      className="btn btn-ghost disabled:opacity-60"
-                      disabled={toggleActive.isPending}
-                      onClick={() => toggleActive.mutate()}
-                    >
-                      {toggleActive.isPending
-                        ? t('saving')
-                        : active
-                          ? t('deactivateTrainer')
-                          : t('activateTrainer')}
-                    </button>
-                  </div>
                 </div>
               </>
             ) : (

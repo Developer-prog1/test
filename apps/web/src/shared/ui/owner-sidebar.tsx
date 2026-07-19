@@ -78,6 +78,26 @@ function ScheduleIcon() {
   );
 }
 
+function PackagesIcon() {
+  return (
+    <PortalIcon>
+      <path
+        d="M4.5 8.5 12 4l7.5 4.5v7L12 20l-7.5-4.5v-7Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 12v8M4.5 8.5 12 12l7.5-3.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </PortalIcon>
+  );
+}
+
 export function OwnerSidebar() {
   const t = useTranslations('owner');
 
@@ -106,6 +126,12 @@ export function OwnerSidebar() {
         label: t('navSchedule'),
         match: 'exact' as const,
         icon: ScheduleIcon,
+      },
+      {
+        href: '/owner/packages',
+        label: t('navPackages'),
+        match: 'exact' as const,
+        icon: PackagesIcon,
       },
       {
         href: '/owner/settings',

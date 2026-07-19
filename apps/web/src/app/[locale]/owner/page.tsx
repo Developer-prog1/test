@@ -55,7 +55,6 @@ function subscriptionLabel(
 
 export default function OwnerPage() {
   const t = useTranslations('owner');
-  const tCommon = useTranslations('common');
   const locale = useLocale();
   const qc = useQueryClient();
   const gym = useQuery({
@@ -83,14 +82,6 @@ export default function OwnerPage() {
         subscription: { status: string; endsAt: string } | null;
         priceAmd: number;
       }>('/owner/subscription'),
-  });
-
-  const checkout = useMutation({
-    mutationFn: () => apiFetch('/owner/subscription/checkout', { method: 'POST' }),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['owner-sub'] });
-      void qc.invalidateQueries({ queryKey: ['owner-gym'] });
-    },
   });
 
   const markRead = useMutation({
@@ -169,14 +160,9 @@ export default function OwnerPage() {
               ? ` · ${new Date(subscription.data.subscription.endsAt).toLocaleDateString(locale)}`
               : ''}
           </p>
-          <button
-            type="button"
-            onClick={() => checkout.mutate()}
-            className="btn btn-primary"
-          >
-            {t('payRenew')} ({subscription.data?.priceAmd ?? 10000}{' '}
-            {tCommon('currency')})
-          </button>
+          <Link href="/owner/packages" className="btn btn-primary inline-flex">
+            {t('payRenew')}
+          </Link>
         </section>
       </Reveal>
 
