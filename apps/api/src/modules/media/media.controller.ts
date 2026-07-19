@@ -1,9 +1,11 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Param,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseGuards,
@@ -11,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { IsArray, IsString } from 'class-validator';
 import { memoryStorage } from 'multer';
 import { ROLES } from '@gymhub/shared';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -18,6 +21,12 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { MediaService } from './media.service';
+
+class ReplaceMediaUrlsDto {
+  @IsArray()
+  @IsString({ each: true })
+  urls!: string[];
+}
 
 @ApiTags('owner-media')
 @ApiBearerAuth()
@@ -30,6 +39,14 @@ export class MediaController {
   @Get()
   list(@CurrentUser() user: { id: string }) {
     return this.mediaService.list(user.id);
+  }
+
+  @Put()
+  replaceUrls(
+    @CurrentUser() user: { id: string },
+    @Body() dto: ReplaceMediaUrlsDto,
+  ) {
+    return this.mediaService.replaceUrls(user.id, dto.urls);
   }
 
   @Post()

@@ -168,19 +168,21 @@ function GymsPageContent() {
       </div>
 
       {!gyms.isLoading && total > 0 ? (
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={total}
-          onPageChange={(nextPage) => {
-            updateFilters({ page: nextPage });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          previousLabel={t('prev')}
-          nextLabel={t('next')}
-          pageLabel={t('pageInfo', { from, to, total })}
-          ariaLabel={tCommon('pagination')}
-        />
+        <Reveal y={28} amount={0.35}>
+          <Pagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={(nextPage) => {
+              updateFilters({ page: nextPage });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            previousLabel={t('prev')}
+            nextLabel={t('next')}
+            pageLabel={t('pageInfo', { from, to, total })}
+            ariaLabel={tCommon('pagination')}
+          />
+        </Reveal>
       ) : null}
     </div>
   );

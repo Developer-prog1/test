@@ -51,12 +51,14 @@ export type AdminGymFormValues = {
   activateMonths: number;
   mediaUrls: string[];
   trainers: Array<{
+    id?: string;
     name: string;
     photoUrl: string;
     specialization: string;
     bio: string;
   }>;
   plans: Array<{
+    id?: string;
     title: string;
     description: string;
     priceAmd: string;

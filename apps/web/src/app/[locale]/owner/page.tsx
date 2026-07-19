@@ -129,28 +129,35 @@ export default function OwnerPage() {
       </Reveal>
 
       {data ? (
-        <div className="grid gap-4 sm:grid-cols-4">
-          {[
-            {
-              label: t('gym'),
-              value: data.name,
-              sub: moderationLabel(data.moderationStatus, t),
-            },
-            { label: t('completeness'), value: `${data.completenessScore}%` },
-            { label: t('views'), value: data.stats?.viewCount ?? 0 },
-            { label: t('leadsWeek'), value: data.stats?.newLeadsWeek ?? 0 },
-          ].map((card, i) => (
-            <Reveal key={card.label} delay={i * 0.06}>
-              <div className="card-glass p-5">
-                <p className="text-sm text-[var(--muted)]">{card.label}</p>
-                <p className="display mt-2 text-2xl font-bold">{card.value}</p>
-                {card.sub ? (
-                  <p className="mt-1 text-sm text-[var(--muted)]">{card.sub}</p>
-                ) : null}
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-4">
+            {[
+              {
+                label: t('gym'),
+                value: data.name,
+                sub: moderationLabel(data.moderationStatus, t),
+              },
+              { label: t('completeness'), value: `${data.completenessScore}%` },
+              { label: t('views'), value: data.stats?.viewCount ?? 0 },
+              { label: t('leadsWeek'), value: data.stats?.newLeadsWeek ?? 0 },
+            ].map((card, i) => (
+              <Reveal key={card.label} delay={i * 0.06}>
+                <div className="card-glass p-5">
+                  <p className="text-sm text-[var(--muted)]">{card.label}</p>
+                  <p className="display mt-2 text-2xl font-bold">{card.value}</p>
+                  {card.sub ? (
+                    <p className="mt-1 text-sm text-[var(--muted)]">{card.sub}</p>
+                  ) : null}
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={0.2}>
+            <Link href="/owner/gym" className="btn btn-primary inline-flex">
+              {t('navGym')}
+            </Link>
+          </Reveal>
+        </>
       ) : null}
 
       <Reveal>

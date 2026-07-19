@@ -111,6 +111,32 @@ export class MediaService {
     return media;
   }
 
+  async replaceUrls(ownerId: string, urls: string[]) {
+    const gym = await this.ownerService.requireGym(ownerId);
+    const cleaned = urls.map((url) => url.trim()).filter(Boolean);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.gymMedia.deleteMany({ where: { gymId: gym.id } });
+      if (cleaned.length === 0) return;
+      await tx.gymMedia.createMany({
+        data: cleaned.map((url, index) => ({
+          gymId: gym.id,
+          url,
+          kind: index === 0 ? 'cover' : 'gallery',
+          sortOrder: index,
+        })),
+      });
+    });
+
+    const full = await this.ownerService.requireGym(ownerId);
+    await this.prisma.gym.update({
+      where: { id: gym.id },
+      data: { completenessScore: computeCompleteness(full) },
+    });
+
+    return this.list(ownerId);
+  }
+
   async remove(ownerId: string, mediaId: string) {
     const gym = await this.ownerService.requireGym(ownerId);
     const media = await this.prisma.gymMedia.findFirst({

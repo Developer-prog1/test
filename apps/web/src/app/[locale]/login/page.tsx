@@ -9,12 +9,39 @@ import { Reveal } from '../../../shared/ui/reveal';
 import { PasswordInput } from '../../../shared/ui/password-input';
 import { GoogleAuthButton } from '../../../shared/ui/google-auth-button';
 
+const DEMO_ACCOUNTS = [
+  {
+    id: 'admin',
+    email: 'admin@gymhub.am',
+    password: 'Admin123!',
+    labelKey: 'demoAdmin' as const,
+  },
+  {
+    id: 'reebok',
+    email: 'reebok@gymhub.am',
+    password: 'Owner123!',
+    labelKey: 'demoReebokOwner' as const,
+  },
+  {
+    id: 'user',
+    email: 'user@gymhub.am',
+    password: 'User12345!',
+    labelKey: 'demoUser' as const,
+  },
+] as const;
+
 export default function LoginPage() {
   const t = useTranslations('auth');
   const router = useRouter();
-  const [email, setEmail] = useState('admin@gymhub.am');
-  const [password, setPassword] = useState('Admin123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  function fillDemo(account: (typeof DEMO_ACCOUNTS)[number]) {
+    setEmail(account.email);
+    setPassword(account.password);
+    setError('');
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -48,6 +75,25 @@ export default function LoginPage() {
     <div className="container-shell flex min-h-[70vh] items-center justify-center py-16">
       <Reveal className="card-glass w-full max-w-md p-8">
         <h1 className="display text-4xl font-bold">{t('loginTitle')}</h1>
+
+        <div className="mt-5 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+            {t('demoQuickFill')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {DEMO_ACCOUNTS.map((account) => (
+              <button
+                key={account.id}
+                type="button"
+                onClick={() => fillDemo(account)}
+                className="rounded-full border border-[rgba(244,241,236,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-1.5 text-xs font-semibold text-[var(--text)] transition hover:border-[rgba(214,255,62,0.4)] hover:bg-[rgba(214,255,62,0.1)] hover:text-[var(--accent)]"
+              >
+                {t(account.labelKey)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <form className="mt-6 space-y-3" onSubmit={onSubmit}>
           <input
             className="field"
@@ -78,7 +124,9 @@ export default function LoginPage() {
           </div>
           <GoogleAuthButton />
         </form>
-        {error ? <p className="mt-3 text-sm text-[var(--accent-hot)]">{error}</p> : null}
+        {error ? (
+          <p className="mt-3 text-sm text-[var(--accent-hot)]">{error}</p>
+        ) : null}
         <div className="mt-6 border-t border-[var(--line)] pt-5 text-center">
           <p className="text-sm text-[var(--muted)]">{t('noAccount')}</p>
           <Link

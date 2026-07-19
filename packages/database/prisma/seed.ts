@@ -484,8 +484,20 @@ async function main() {
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80',
   );
 
+  const reebokOwner = await upsertUser(
+    'reebok@gymhub.am',
+    'GYM_OWNER',
+    'Reebok Owner',
+    'Owner123!',
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&crop=faces&w=200&h=200&q=80',
+  );
+
   const owners = [];
   for (let i = 0; i < GYMS.length; i += 1) {
+    if (GYMS[i].slug === 'reebok-sports-club') {
+      owners.push(reebokOwner);
+      continue;
+    }
     owners.push(
       await upsertUser(
         `owner${i + 1}@gymhub.am`,

@@ -14,6 +14,7 @@ import {
 } from './admin-gym-view-toggle';
 import { Pagination } from './pagination';
 import { scrollPortalToTop } from './portal-main';
+import { Reveal } from './reveal';
 
 export type AdminGymRow = {
   id: string;
@@ -255,16 +256,18 @@ function AdminGymListContent({ status, title, emptyLabel }: AdminGymListProps) {
       )}
 
       {!gyms.isLoading && total > 0 ? (
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={total}
-          onPageChange={goToPage}
-          previousLabel={tGyms('prev')}
-          nextLabel={tGyms('next')}
-          pageLabel={tGyms('pageInfo', { from, to, total })}
-          ariaLabel={tCommon('pagination')}
-        />
+        <Reveal y={28} amount={0.35}>
+          <Pagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={goToPage}
+            previousLabel={tGyms('prev')}
+            nextLabel={tGyms('next')}
+            pageLabel={tGyms('pageInfo', { from, to, total })}
+            ariaLabel={tCommon('pagination')}
+          />
+        </Reveal>
       ) : null}
     </div>
   );

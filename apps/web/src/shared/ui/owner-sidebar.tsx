@@ -17,6 +17,19 @@ function OverviewIcon() {
   );
 }
 
+function GymIcon() {
+  return (
+    <PortalIcon>
+      <path
+        d="M7 8v8M17 8v8M7 12h10M5 10v4M19 10v4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </PortalIcon>
+  );
+}
+
 export function OwnerSidebar() {
   const t = useTranslations('owner');
 
@@ -27,6 +40,12 @@ export function OwnerSidebar() {
         label: t('navOverview'),
         match: 'exact' as const,
         icon: OverviewIcon,
+      },
+      {
+        href: '/owner/gym',
+        label: t('navGym'),
+        match: 'exact' as const,
+        icon: GymIcon,
       },
       {
         href: '/owner/settings',
