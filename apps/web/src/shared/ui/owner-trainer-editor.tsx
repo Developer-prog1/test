@@ -396,12 +396,14 @@ export function OwnerTrainerPreviewModal({
   onClose,
   onChanged,
   startInEdit = false,
+  onEditChange,
 }: {
   trainer: OwnerTrainer | null;
   open: boolean;
   onClose: () => void;
   onChanged: () => void;
   startInEdit?: boolean;
+  onEditChange?: (editing: boolean) => void;
 }) {
   const t = useTranslations('owner');
   const locale = useLocale();
@@ -451,8 +453,8 @@ export function OwnerTrainerPreviewModal({
     onSuccess: () => {
       setError(null);
       setMode('preview');
+      onEditChange?.(false);
       onChanged();
-      onClose();
     },
     onError: (err: unknown) => {
       setError(err instanceof ApiError ? err.message : t('trainerSaveFailed'));
@@ -609,6 +611,7 @@ export function OwnerTrainerPreviewModal({
                   onCancel={() => {
                     setMode('preview');
                     setError(null);
+                    onEditChange?.(false);
                   }}
                   onDelete={() => remove.mutate()}
                   saving={save.isPending}

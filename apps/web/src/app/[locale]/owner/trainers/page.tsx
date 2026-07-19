@@ -87,10 +87,21 @@ function OwnerTrainersPageContent() {
 
   useEffect(() => {
     if (!nameParam || trainers.isLoading || !trainers.data) return;
-    if (selected) return;
-    writeTrainerUrl(null, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- clear only unknown names
-  }, [nameParam, selected, trainers.data, trainers.isLoading]);
+    if (findTrainerByNameQuery(trainers.data, nameParam)) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('name');
+    params.delete('edit');
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [
+    nameParam,
+    pathname,
+    router,
+    searchParams,
+    trainers.data,
+    trainers.isLoading,
+  ]);
 
   const create = useMutation({
     mutationFn: () =>
@@ -251,6 +262,9 @@ function OwnerTrainersPageContent() {
         open={Boolean(selected)}
         startInEdit={openInEdit}
         onClose={() => writeTrainerUrl(null, false)}
+        onEditChange={(editing) => {
+          if (selected) writeTrainerUrl(selected, editing);
+        }}
         onChanged={refresh}
       />
     </div>
