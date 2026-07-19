@@ -224,7 +224,7 @@ export function SiteHeader() {
     if (role === 'GYM_OWNER') {
       return path === '/owner' || path.startsWith('/owner/');
     }
-    return path === '/account';
+    return path === '/account' || path.startsWith('/account/');
   }
 
   const onAccountHome = user ? isOnAccountHome(user.role, pathname) : false;
@@ -240,9 +240,15 @@ export function SiteHeader() {
     setAccountOpen((value) => !value);
   }
 
-  const isAdminArea = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isPortalArea =
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/owner' ||
+    pathname.startsWith('/owner/') ||
+    pathname === '/account' ||
+    pathname.startsWith('/account/');
 
-  const shellClass = isAdminArea
+  const shellClass = isPortalArea
     ? 'border-[rgba(244,241,236,0.12)] bg-[linear-gradient(135deg,rgba(34,38,48,0.98),rgba(24,27,34,0.99))] shadow-[0_16px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_rgba(214,255,62,0.04)]'
     : scrolled
       ? 'border-[rgba(214,255,62,0.22)] bg-[rgba(14,16,20,0.9)] shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(214,255,62,0.06)]'

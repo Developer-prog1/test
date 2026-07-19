@@ -13,6 +13,7 @@ import {
   type AdminGymPayload,
 } from '../../../../../shared/ui/admin-gym-form';
 import { parseWorkingHours } from '../../../../../shared/lib/working-hours';
+import { parseLocalizedInput } from '../../../../../shared/lib/localize';
 import { Reveal } from '../../../../../shared/ui/reveal';
 
 type OwnerRow = { email: string; fullName: string | null };
@@ -55,9 +56,9 @@ function mapGymToForm(gym: GymDetail): AdminGymFormValues {
     name: gym.name,
     city: gym.city,
     district: gym.district ?? 'Kentron',
-    address: gym.address,
+    address: parseLocalizedInput(gym.address),
     phone: gym.phone ?? '',
-    description: gym.description ?? '',
+    description: parseLocalizedInput(gym.description),
     amenities: gym.amenities ?? [],
     workingHours: {
       mon: hours?.mon ?? base.workingHours.mon,

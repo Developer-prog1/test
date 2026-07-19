@@ -104,7 +104,7 @@ export default function OwnerPage() {
 
   if (gym.isError) {
     return (
-      <p className="container-shell py-16 text-[var(--accent-hot)]">
+      <p className="text-[var(--accent-hot)]">
         {t('loginRequired')}{' '}
         <Link href="/login" className="text-[var(--accent)]">
           {t('login')}
@@ -123,7 +123,7 @@ export default function OwnerPage() {
     | undefined;
 
   return (
-    <div className="container-shell space-y-10 py-12">
+    <div className="space-y-10">
       <Reveal>
         <h1 className="display text-4xl font-bold">{t('title')}</h1>
       </Reveal>
