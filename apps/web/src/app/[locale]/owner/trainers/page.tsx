@@ -119,8 +119,7 @@ function OwnerTrainersPageContent() {
       setCreateError(null);
       setDraft(emptyOwnerTrainerDraft());
       setAdding(false);
-      await qc.invalidateQueries({ queryKey: ['owner-trainers'] });
-      await qc.invalidateQueries({ queryKey: ['owner-gym'] });
+      refreshPublicTrainerViews();
       writeTrainerUrl(created, false);
     },
     onError: (err: unknown) => {
@@ -140,8 +139,7 @@ function OwnerTrainersPageContent() {
       if (selected?.id === id) {
         writeTrainerUrl(null, false);
       }
-      await qc.invalidateQueries({ queryKey: ['owner-trainers'] });
-      await qc.invalidateQueries({ queryKey: ['owner-gym'] });
+      refreshPublicTrainerViews();
     },
     onSettled: () => {
       setDeletingId(null);
@@ -157,18 +155,23 @@ function OwnerTrainersPageContent() {
     onMutate: ({ id }) => {
       setTogglingId(id);
     },
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ['owner-trainers'] });
-      await qc.invalidateQueries({ queryKey: ['owner-gym'] });
+    onSuccess: () => {
+      refreshPublicTrainerViews();
     },
     onSettled: () => {
       setTogglingId(null);
     },
   });
 
-  function refresh() {
+  function refreshPublicTrainerViews() {
     void qc.invalidateQueries({ queryKey: ['owner-trainers'] });
     void qc.invalidateQueries({ queryKey: ['owner-gym'] });
+    void qc.invalidateQueries({ queryKey: ['trainers'] });
+    void qc.invalidateQueries({ queryKey: ['gym'] });
+  }
+
+  function refresh() {
+    refreshPublicTrainerViews();
   }
 
   if (trainers.isError) {
