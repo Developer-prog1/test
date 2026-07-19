@@ -8,6 +8,7 @@ import { ApiError, apiFetch } from '../api/client';
 import { localizeText } from '../lib/localize';
 import { SPEC_KEYS } from './admin-gym-form-model';
 import { AutoGrowTextarea } from './auto-grow-textarea';
+import { ConfirmDialog } from './confirm-dialog';
 import { DarkSelect } from './dark-select';
 import { SafeImage } from './safe-image';
 
@@ -411,6 +412,7 @@ export function OwnerTrainerPreviewModal({
   const [mode, setMode] = useState<'preview' | 'edit'>('preview');
   const [draft, setDraft] = useState(emptyOwnerTrainerDraft);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const specLabel = useSpecLabel(trainer?.specialization);
 
   useEffect(() => {
@@ -418,6 +420,7 @@ export function OwnerTrainerPreviewModal({
     setDraft(ownerTrainerToDraft(trainer));
     setMode(startInEdit ? 'edit' : 'preview');
     setError(null);
+    setConfirmDelete(false);
   }, [trainer, startInEdit]);
 
   useEffect(() => {
@@ -467,10 +470,12 @@ export function OwnerTrainerPreviewModal({
       return apiFetch(`/owner/trainers/${trainer.id}`, { method: 'DELETE' });
     },
     onSuccess: () => {
+      setConfirmDelete(false);
       onChanged();
       onClose();
     },
     onError: (err: unknown) => {
+      setConfirmDelete(false);
       setError(err instanceof ApiError ? err.message : t('trainerDeleteFailed'));
     },
   });
@@ -478,6 +483,7 @@ export function OwnerTrainerPreviewModal({
   const active = trainer ? isTrainerActive(trainer) : false;
 
   return (
+    <>
     <AnimatePresence>
       {open && trainer ? (
         <motion.div
@@ -506,12 +512,13 @@ export function OwnerTrainerPreviewModal({
           >
             {mode === 'preview' ? (
               <>
-                <div className="relative aspect-[4/5] max-h-[52vh] overflow-hidden bg-[var(--surface)] sm:aspect-[3/4]">
+                <div className="relative h-[min(52vh,28rem)] w-full overflow-hidden bg-[var(--surface)] sm:h-[min(56vh,32rem)]">
                   <SafeImage
                     src={trainer.photoUrl}
                     alt={trainer.name}
                     fill
-                    className="object-cover object-[center_18%]"
+                    sizes="(max-width: 512px) 100vw, 512px"
+                    className="object-cover object-[center_22%]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#12141a] via-transparent to-black/20" />
                   <button
@@ -577,7 +584,7 @@ export function OwnerTrainerPreviewModal({
                     setError(null);
                     onEditChange?.(false);
                   }}
-                  onDelete={() => remove.mutate()}
+                  onDelete={() => setConfirmDelete(true)}
                   saving={save.isPending}
                   deleting={remove.isPending}
                   error={error}
@@ -589,5 +596,19 @@ export function OwnerTrainerPreviewModal({
         </motion.div>
       ) : null}
     </AnimatePresence>
+
+    <ConfirmDialog
+      open={confirmDelete && Boolean(trainer)}
+      tone="danger"
+      title={t('confirmDeleteTitle')}
+      description={t('confirmDeleteBody', { name: trainer?.name ?? '' })}
+      confirmLabel={t('confirmDeleteAction')}
+      pending={remove.isPending}
+      onCancel={() => {
+        if (!remove.isPending) setConfirmDelete(false);
+      }}
+      onConfirm={() => remove.mutate()}
+    />
+    </>
   );
 }

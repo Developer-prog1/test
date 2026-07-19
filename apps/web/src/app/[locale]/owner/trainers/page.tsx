@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ApiError, apiFetch } from '../../../../shared/api/client';
 import { Link, usePathname, useRouter } from '../../../../i18n/navigation';
+import { ConfirmDialog } from '../../../../shared/ui/confirm-dialog';
 import { Reveal } from '../../../../shared/ui/reveal';
 import {
   emptyOwnerTrainerDraft,
@@ -14,6 +15,10 @@ import {
   OwnerTrainerPreviewModal,
   type OwnerTrainer,
 } from '../../../../shared/ui/owner-trainer-editor';
+
+type PendingConfirm =
+  | { type: 'delete'; trainer: OwnerTrainer }
+  | { type: 'deactivate'; trainer: OwnerTrainer };
 
 /** URL shape: ?name=Aram/Sargsyan [&edit=1] */
 function trainerNameToQuery(name: string): string {
@@ -53,6 +58,9 @@ function OwnerTrainersPageContent() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(
+    null,
+  );
 
   const nameParam = searchParams.get('name');
   const editParam = searchParams.get('edit') === '1';
@@ -139,6 +147,7 @@ function OwnerTrainersPageContent() {
       if (selected?.id === id) {
         writeTrainerUrl(null, false);
       }
+      setPendingConfirm(null);
       refreshPublicTrainerViews();
     },
     onSettled: () => {
@@ -156,6 +165,7 @@ function OwnerTrainersPageContent() {
       setTogglingId(id);
     },
     onSuccess: () => {
+      setPendingConfirm(null);
       refreshPublicTrainerViews();
     },
     onSettled: () => {
@@ -172,6 +182,31 @@ function OwnerTrainersPageContent() {
 
   function refresh() {
     refreshPublicTrainerViews();
+  }
+
+  function requestDelete(trainer: OwnerTrainer) {
+    setPendingConfirm({ type: 'delete', trainer });
+  }
+
+  function requestToggleActive(trainer: OwnerTrainer) {
+    const isActive = trainer.isActive !== false;
+    if (isActive) {
+      setPendingConfirm({ type: 'deactivate', trainer });
+      return;
+    }
+    toggleActive.mutate({ id: trainer.id, isActive: false });
+  }
+
+  function confirmPendingAction() {
+    if (!pendingConfirm) return;
+    if (pendingConfirm.type === 'delete') {
+      remove.mutate(pendingConfirm.trainer.id);
+      return;
+    }
+    toggleActive.mutate({
+      id: pendingConfirm.trainer.id,
+      isActive: true,
+    });
   }
 
   if (trainers.isError) {
@@ -245,13 +280,8 @@ function OwnerTrainersPageContent() {
                 trainer={trainer}
                 onOpen={() => writeTrainerUrl(trainer, false)}
                 onEdit={() => writeTrainerUrl(trainer, true)}
-                onDelete={() => remove.mutate(trainer.id)}
-                onToggleActive={() =>
-                  toggleActive.mutate({
-                    id: trainer.id,
-                    isActive: trainer.isActive !== false,
-                  })
-                }
+                onDelete={() => requestDelete(trainer)}
+                onToggleActive={() => requestToggleActive(trainer)}
                 deleting={deletingId === trainer.id}
                 toggling={togglingId === trainer.id}
               />
@@ -269,6 +299,39 @@ function OwnerTrainersPageContent() {
           if (selected) writeTrainerUrl(selected, editing);
         }}
         onChanged={refresh}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingConfirm)}
+        tone={pendingConfirm?.type === 'delete' ? 'danger' : 'warning'}
+        title={
+          pendingConfirm?.type === 'delete'
+            ? t('confirmDeleteTitle')
+            : t('confirmDeactivateTitle')
+        }
+        description={
+          pendingConfirm?.type === 'delete'
+            ? t('confirmDeleteBody', { name: pendingConfirm.trainer.name })
+            : t('confirmDeactivateBody', {
+                name: pendingConfirm?.trainer.name ?? '',
+              })
+        }
+        confirmLabel={
+          pendingConfirm?.type === 'delete'
+            ? t('confirmDeleteAction')
+            : t('confirmDeactivateAction')
+        }
+        pending={
+          pendingConfirm?.type === 'delete'
+            ? remove.isPending
+            : toggleActive.isPending
+        }
+        onCancel={() => {
+          if (!remove.isPending && !toggleActive.isPending) {
+            setPendingConfirm(null);
+          }
+        }}
+        onConfirm={confirmPendingAction}
       />
     </div>
   );
