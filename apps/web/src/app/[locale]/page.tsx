@@ -50,7 +50,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <section className="relative min-h-[92vh] overflow-hidden">
+      <section className="relative -mt-[var(--header-height)] min-h-screen overflow-hidden">
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
           <div className="hero-drift absolute inset-[-12%]">
             <SafeImage
@@ -63,7 +63,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="hero-grid" />
-        <div className="container-shell relative z-10 flex min-h-[92vh] flex-col justify-end pb-16 pt-28">
+        <div className="container-shell relative z-10 flex min-h-screen flex-col justify-end pb-16 pt-[calc(var(--header-height)+2rem)]">
           <motion.p
             className="eyebrow mb-5"
             initial={{ opacity: 0, y: 16 }}

@@ -240,9 +240,13 @@ export function SiteHeader() {
     setAccountOpen((value) => !value);
   }
 
-  const shellClass = scrolled
-    ? 'border-[rgba(214,255,62,0.22)] bg-[rgba(14,16,20,0.9)] shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(214,255,62,0.06)]'
-    : 'border-[rgba(244,241,236,0.14)] bg-[rgba(18,20,26,0.42)] shadow-[0_16px_48px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]';
+  const isAdminArea = pathname === '/admin' || pathname.startsWith('/admin/');
+
+  const shellClass = isAdminArea
+    ? 'border-[rgba(244,241,236,0.12)] bg-[linear-gradient(135deg,rgba(34,38,48,0.98),rgba(24,27,34,0.99))] shadow-[0_16px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_rgba(214,255,62,0.04)]'
+    : scrolled
+      ? 'border-[rgba(214,255,62,0.22)] bg-[rgba(14,16,20,0.9)] shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(214,255,62,0.06)]'
+      : 'border-[rgba(244,241,236,0.14)] bg-[rgba(18,20,26,0.42)] shadow-[0_16px_48px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]';
 
   const iconBtn = (active: boolean) =>
     active
@@ -403,11 +407,15 @@ export function SiteHeader() {
                   onClick={handleAccountClick}
                   className={
                     onAccountHome
-                      ? 'relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ring-1 ring-[rgba(214,255,62,0.75)] shadow-[0_0_18px_rgba(214,255,62,0.2)] transition'
-                      : 'relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ring-1 ring-[rgba(214,255,62,0.45)] transition hover:ring-[rgba(214,255,62,0.75)] hover:shadow-[0_0_18px_rgba(214,255,62,0.2)]'
+                      ? 'group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full ring-2 ring-[rgba(214,255,62,0.85)] shadow-[0_0_18px_rgba(214,255,62,0.25)] transition duration-200 hover:scale-105 hover:ring-[var(--accent)] hover:shadow-[0_0_24px_rgba(214,255,62,0.4)] active:scale-95'
+                      : 'group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full ring-2 ring-[rgba(214,255,62,0.5)] transition duration-200 hover:scale-105 hover:ring-[rgba(214,255,62,0.95)] hover:shadow-[0_0_20px_rgba(214,255,62,0.3)] active:scale-95'
                   }
                 >
                   <AccountAvatar user={user} />
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-full bg-[rgba(214,255,62,0.12)] opacity-0 transition duration-200 group-hover:opacity-100"
+                  />
                 </button>
 
                 <AnimatePresence>
