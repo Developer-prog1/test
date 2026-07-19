@@ -403,11 +403,15 @@ export function SiteHeader() {
                   onClick={handleAccountClick}
                   className={
                     onAccountHome
-                      ? 'relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ring-1 ring-[rgba(214,255,62,0.75)] shadow-[0_0_18px_rgba(214,255,62,0.2)] transition'
-                      : 'relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ring-1 ring-[rgba(214,255,62,0.45)] transition hover:ring-[rgba(214,255,62,0.75)] hover:shadow-[0_0_18px_rgba(214,255,62,0.2)]'
+                      ? 'group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full ring-2 ring-[rgba(214,255,62,0.85)] shadow-[0_0_18px_rgba(214,255,62,0.25)] transition duration-200 hover:scale-105 hover:ring-[var(--accent)] hover:shadow-[0_0_24px_rgba(214,255,62,0.4)] active:scale-95'
+                      : 'group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full ring-2 ring-[rgba(214,255,62,0.5)] transition duration-200 hover:scale-105 hover:ring-[rgba(214,255,62,0.95)] hover:shadow-[0_0_20px_rgba(214,255,62,0.3)] active:scale-95'
                   }
                 >
                   <AccountAvatar user={user} />
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-full bg-[rgba(214,255,62,0.12)] opacity-0 transition duration-200 group-hover:opacity-100"
+                  />
                 </button>
 
                 <AnimatePresence>

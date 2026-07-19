@@ -146,17 +146,31 @@ function NavPanel({ onNavigate }: NavPanelProps) {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-b border-[var(--line)] px-5 pb-5 pt-6">
-        <Link href="/" onClick={onNavigate} className="display text-2xl font-bold">
-          Gym<span className="text-[var(--accent)]">Hub</span>
+    <div className="relative flex h-full flex-col">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(ellipse_at_top,rgba(214,255,62,0.08),transparent_70%)]"
+      />
+      <div className="relative border-b border-[rgba(244,241,236,0.06)] px-5 pb-6 pt-7">
+        <Link
+          href="/"
+          onClick={onNavigate}
+          className="display group inline-flex items-center gap-2 text-2xl font-bold tracking-tight"
+        >
+          <span
+            aria-hidden
+            className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_10px_rgba(214,255,62,0.65)] transition group-hover:scale-125"
+          />
+          <span>
+            Gym<span className="text-[var(--accent)]">Hub</span>
+          </span>
         </Link>
-        <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+        <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.28em] text-[rgba(155,150,140,0.75)]">
           {t('portalSubtitle')}
         </p>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-4">
+      <nav className="relative flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-5">
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href, item.match);
           const Icon = item.icon;
@@ -167,11 +181,23 @@ function NavPanel({ onNavigate }: NavPanelProps) {
               onClick={onNavigate}
               className={
                 active
-                  ? 'flex items-center gap-3 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-bold !text-[#111] shadow-[0_8px_24px_rgba(214,255,62,0.2)]'
-                  : 'flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium !text-[rgba(244,241,236,0.72)] transition hover:bg-[rgba(255,255,255,0.06)] hover:!text-[var(--text)]'
+                  ? 'group relative flex items-center gap-3 rounded-2xl bg-[linear-gradient(135deg,rgba(214,255,62,0.14),rgba(214,255,62,0.04))] px-3.5 py-2.5 text-sm font-semibold !text-[var(--text)] shadow-[inset_0_0_0_1px_rgba(214,255,62,0.22)] transition'
+                  : 'group relative flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium !text-[rgba(244,241,236,0.55)] transition duration-200 hover:bg-[rgba(255,255,255,0.035)] hover:!text-[rgba(244,241,236,0.92)]'
               }
             >
-              <span className={active ? '!text-[#111]' : '!text-[var(--accent)]'}>
+              {active ? (
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-[var(--accent)] shadow-[0_0_12px_rgba(214,255,62,0.7)]"
+                />
+              ) : null}
+              <span
+                className={
+                  active
+                    ? 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(214,255,62,0.16)] !text-[var(--accent)] shadow-[inset_0_0_0_1px_rgba(214,255,62,0.2)]'
+                    : 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl !text-[rgba(214,255,62,0.55)] transition group-hover:!text-[var(--accent)] group-hover:bg-[rgba(255,255,255,0.04)]'
+                }
+              >
                 <Icon />
               </span>
               {t(item.key)}
@@ -179,6 +205,13 @@ function NavPanel({ onNavigate }: NavPanelProps) {
           );
         })}
       </nav>
+
+      <div className="relative px-5 pb-5 pt-2">
+        <div
+          aria-hidden
+          className="h-px w-full bg-gradient-to-r from-transparent via-[rgba(214,255,62,0.2)] to-transparent"
+        />
+      </div>
     </div>
   );
 }
@@ -207,19 +240,23 @@ export function AdminSidebar() {
       </div>
 
       {mobileOpen ? (
-        <aside className="mb-6 overflow-hidden rounded-[1.75rem] border border-[var(--line)] bg-[var(--bg-elevated)] lg:hidden">
+        <aside className="mb-6 overflow-hidden rounded-[1.75rem] border border-[rgba(244,241,236,0.1)] bg-[linear-gradient(165deg,rgba(28,31,38,0.99),rgba(20,22,28,0.99))] shadow-[0_24px_60px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.05)] lg:hidden">
           <NavPanel onNavigate={() => setMobileOpen(false)} />
         </aside>
       ) : null}
 
       <aside
-        className="fixed bottom-0 left-0 top-[calc(var(--header-height)+0.35rem)] z-40 hidden w-[var(--admin-sidebar-width)] overflow-hidden border border-b-0 border-l-0 border-[var(--line)] bg-[linear-gradient(180deg,rgba(24,27,34,0.98),rgba(18,20,26,0.98))] shadow-[8px_0_40px_rgba(0,0,0,0.35)] backdrop-blur-xl lg:block"
+        className="fixed bottom-0 left-0 top-[calc(var(--header-height)+0.35rem)] z-40 hidden w-[var(--admin-sidebar-width)] overflow-hidden border border-b-0 border-l-0 border-[rgba(244,241,236,0.1)] bg-[linear-gradient(165deg,rgba(26,29,36,0.98)_0%,rgba(18,20,26,0.99)_50%,rgba(15,17,22,1)_100%)] shadow-[12px_0_48px_rgba(0,0,0,0.45),inset_-1px_0_0_rgba(214,255,62,0.06),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl lg:block"
         style={{
           borderTopRightRadius: '2.25rem',
           borderBottomLeftRadius: '2.25rem',
           borderBottomRightRadius: '2.25rem',
         }}
       >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-8 right-0 w-px bg-gradient-to-b from-transparent via-[rgba(214,255,62,0.18)] to-transparent"
+        />
         <NavPanel />
       </aside>
     </>
