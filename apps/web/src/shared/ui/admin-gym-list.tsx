@@ -13,6 +13,7 @@ import {
   type AdminViewMode,
 } from './admin-gym-view-toggle';
 import { Pagination } from './pagination';
+import { scrollPortalToTop } from './portal-main';
 
 export type AdminGymRow = {
   id: string;
@@ -94,7 +95,7 @@ function AdminGymListContent({ status, title, emptyLabel }: AdminGymListProps) {
 
   function goToPage(nextPage: number) {
     setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollPortalToTop();
   }
 
   const gyms = useQuery({

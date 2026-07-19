@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../../../shared/api/client';
 import { Link } from '../../../../i18n/navigation';
 import { Pagination } from '../../../../shared/ui/pagination';
+import { scrollPortalToTop } from '../../../../shared/ui/portal-main';
 import { Reveal } from '../../../../shared/ui/reveal';
 
 const PAGE_SIZE = 12;
@@ -97,7 +98,7 @@ export default function AdminSubscriptionsPage() {
 
   function goToPage(nextPage: number) {
     setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollPortalToTop();
   }
 
   return (
