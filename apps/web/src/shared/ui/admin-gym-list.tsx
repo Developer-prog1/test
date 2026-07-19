@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { apiFetch } from '../api/client';
-import { Link } from '../../i18n/navigation';
+import { Link, usePathname, useRouter } from '../../i18n/navigation';
 import { AdminGymBoardCard } from './admin-gym-board-card';
 import { AdminGymListRow } from './admin-gym-list-row';
 import {
@@ -34,8 +35,11 @@ type AdminGymListResponse = {
   pageSize: number;
 };
 
-const VIEW_STORAGE_KEY = 'gymhub-admin-gyms-view';
 const PAGE_SIZE = 12;
+
+function parseView(value: string | null): AdminViewMode {
+  return value === 'board' ? 'board' : 'list';
+}
 
 function moderationLabel(
   status: string,
@@ -61,35 +65,32 @@ type AdminGymListProps = {
   emptyLabel: string;
 };
 
-export function AdminGymList({ status, title, emptyLabel }: AdminGymListProps) {
+function AdminGymListContent({ status, title, emptyLabel }: AdminGymListProps) {
   const t = useTranslations('admin');
   const tGyms = useTranslations('gyms');
   const tCommon = useTranslations('common');
   const qc = useQueryClient();
-  const [view, setView] = useState<AdminViewMode>('list');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const view = parseView(searchParams.get('view'));
   const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(VIEW_STORAGE_KEY);
-      if (stored === 'list' || stored === 'board') setView(stored);
-    } catch {
-      // ignore
-    }
-  }, []);
 
   useEffect(() => {
     setPage(1);
   }, [status]);
 
-  function changeView(next: AdminViewMode) {
-    setView(next);
-    try {
-      localStorage.setItem(VIEW_STORAGE_KEY, next);
-    } catch {
-      // ignore
-    }
-  }
+  const changeView = useCallback(
+    (next: AdminViewMode) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('view', next);
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
 
   function goToPage(nextPage: number) {
     setPage(nextPage);
@@ -265,5 +266,14 @@ export function AdminGymList({ status, title, emptyLabel }: AdminGymListProps) {
         />
       ) : null}
     </div>
+  );
+}
+
+export function AdminGymList(props: AdminGymListProps) {
+  const t = useTranslations('admin');
+  return (
+    <Suspense fallback={<p className="text-[var(--muted)]">{t('loading')}</p>}>
+      <AdminGymListContent {...props} />
+    </Suspense>
   );
 }
