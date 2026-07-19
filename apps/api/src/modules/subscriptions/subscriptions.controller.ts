@@ -1,12 +1,18 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ROLES } from '@gymhub/shared';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SubscriptionsService } from './subscriptions.service';
+
+class CheckoutDto {
+  @IsOptional()
+  @IsString()
+  packageId?: string;
+}
 
 class WebhookDto {
   @IsString()
@@ -30,8 +36,11 @@ export class SubscriptionsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(ROLES.GYM_OWNER, ROLES.ADMIN)
   @Post('owner/subscription/checkout')
-  checkout(@CurrentUser() user: { id: string }) {
-    return this.subscriptionsService.checkout(user.id);
+  checkout(
+    @CurrentUser() user: { id: string },
+    @Body() dto: CheckoutDto,
+  ) {
+    return this.subscriptionsService.checkout(user.id, dto.packageId);
   }
 
   @Post('owner/subscription/webhook')

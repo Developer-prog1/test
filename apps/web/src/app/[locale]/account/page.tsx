@@ -1,5 +1,6 @@
 'use client';
 
+import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch, getAccessToken } from '../../../shared/api/client';
@@ -25,50 +26,50 @@ function roleLabel(
   }
 }
 
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
+}
+
 export default function AccountPage() {
   const t = useTranslations('accountPage');
   const tNav = useTranslations('nav');
   const tCommon = useTranslations('common');
+  const isClient = useIsClient();
+  const hasToken = isClient && Boolean(getAccessToken());
 
   const me = useQuery({
     queryKey: ['auth-me'],
-    enabled: Boolean(getAccessToken()),
+    enabled: hasToken,
     queryFn: () => apiFetch<AuthUser>('/auth/me'),
   });
 
-  if (!getAccessToken()) {
-    return (
-      <div className="container-shell py-12">
-        <p className="text-[var(--muted)]">
-          {t('loginRequired')}{' '}
-          <Link href="/login" className="font-semibold text-[var(--accent)]">
-            {tNav('login')}
-          </Link>
-        </p>
-      </div>
-    );
+  if (!isClient || (hasToken && me.isLoading)) {
+    return <p className="text-[var(--muted)]">{t('loading')}</p>;
   }
 
-  if (me.isLoading) {
+  if (!hasToken) {
     return (
-      <div className="container-shell py-12">
-        <p className="text-[var(--muted)]">{t('loading')}</p>
-      </div>
+      <p className="text-[var(--muted)]">
+        {t('loginRequired')}{' '}
+        <Link href="/login" className="font-semibold text-[var(--accent)]">
+          {tNav('login')}
+        </Link>
+      </p>
     );
   }
 
   if (me.isError || !me.data) {
-    return (
-      <div className="container-shell py-12">
-        <p className="text-[var(--accent-hot)]">{tCommon('error')}</p>
-      </div>
-    );
+    return <p className="text-[var(--accent-hot)]">{tCommon('error')}</p>;
   }
 
   const user = me.data;
 
   return (
-    <div className="container-shell py-12">
+    <div className="space-y-8">
       <Reveal>
         <p className="eyebrow">{t('eyebrow')}</p>
         <h1 className="display mt-3 text-4xl font-bold sm:text-5xl">
@@ -77,7 +78,7 @@ export default function AccountPage() {
       </Reveal>
 
       <Reveal delay={0.08}>
-        <article className="card-glass mt-10 max-w-xl p-6 sm:p-8">
+        <article className="card-glass max-w-xl p-6 sm:p-8">
           <div className="flex items-center gap-4">
             {user.avatarUrl ? (
               <span className="relative h-16 w-16 overflow-hidden rounded-full ring-1 ring-[rgba(214,255,62,0.4)]">
@@ -117,6 +118,9 @@ export default function AccountPage() {
                 {t('goOwner')}
               </Link>
             ) : null}
+            <Link href="/account/settings" className="btn btn-ghost">
+              {t('navSettings')}
+            </Link>
             <Link href="/favorites" className="btn btn-ghost">
               {tNav('favorites')}
             </Link>

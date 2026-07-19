@@ -118,10 +118,20 @@ export class OwnerService {
       photoUrl?: string;
       specialization?: string;
       bio?: string;
+      isActive?: boolean;
     },
   ) {
     const gym = await this.requireGym(ownerId);
-    return this.prisma.trainer.create({ data: { ...data, gymId: gym.id } });
+    return this.prisma.trainer.create({
+      data: {
+        name: data.name,
+        photoUrl: data.photoUrl,
+        specialization: data.specialization,
+        bio: data.bio,
+        isActive: data.isActive ?? true,
+        gymId: gym.id,
+      },
+    });
   }
 
   async updateTrainer(
@@ -132,6 +142,7 @@ export class OwnerService {
       photoUrl?: string;
       specialization?: string;
       bio?: string;
+      isActive?: boolean;
     },
   ) {
     const gym = await this.requireGym(ownerId);

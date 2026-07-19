@@ -1,20 +1,47 @@
 'use client';
 
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { apiFetch } from '../api/client';
-import { Link } from '../../i18n/navigation';
+import { Link, usePathname, useRouter } from '../../i18n/navigation';
+import { AdminGymBoardCard } from './admin-gym-board-card';
+import { AdminGymListRow } from './admin-gym-list-row';
+import {
+  AdminGymViewToggle,
+  type AdminViewMode,
+} from './admin-gym-view-toggle';
+import { Pagination } from './pagination';
+import { scrollPortalToTop } from './portal-main';
 import { Reveal } from './reveal';
 
 export type AdminGymRow = {
   id: string;
   slug: string;
   name: string;
+  city: string;
+  district: string | null;
   moderationStatus: string;
   isFeatured: boolean;
   owner: { email: string; fullName?: string | null };
+  media?: { url: string }[];
+  plans?: { priceAmd: number }[];
   subscriptions?: Array<{ status: string; endsAt: string }>;
 };
+
+type AdminGymListResponse = {
+  items: AdminGymRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+const PAGE_SIZE = 12;
+
+function parseView(value: string | null): AdminViewMode {
+  return value === 'board' ? 'board' : 'list';
+}
 
 function moderationLabel(
   status: string,
@@ -40,17 +67,56 @@ type AdminGymListProps = {
   emptyLabel: string;
 };
 
-export function AdminGymList({ status, title, emptyLabel }: AdminGymListProps) {
+function AdminGymListContent({ status, title, emptyLabel }: AdminGymListProps) {
   const t = useTranslations('admin');
+  const tGyms = useTranslations('gyms');
+  const tCommon = useTranslations('common');
   const qc = useQueryClient();
-  const query = status
-    ? `/admin/gyms?limit=100&status=${encodeURIComponent(status)}`
-    : '/admin/gyms?limit=100';
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const view = parseView(searchParams.get('view'));
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [status]);
+
+  const changeView = useCallback(
+    (next: AdminViewMode) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('view', next);
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
+
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+    scrollPortalToTop();
+  }
 
   const gyms = useQuery({
-    queryKey: ['admin-gyms', status ?? 'all'],
-    queryFn: () => apiFetch<{ items: AdminGymRow[] }>(query),
+    queryKey: ['admin-gyms', status ?? 'all', page, PAGE_SIZE],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(PAGE_SIZE),
+      });
+      if (status) params.set('status', status);
+      return apiFetch<AdminGymListResponse>(`/admin/gyms?${params}`);
+    },
   });
+
+  useEffect(() => {
+    const total = gyms.data?.total;
+    if (total == null) return;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (page > totalPages) setPage(totalPages);
+  }, [gyms.data?.total, page]);
 
   const moderate = useMutation({
     mutationFn: ({
@@ -104,6 +170,9 @@ export function AdminGymList({ status, title, emptyLabel }: AdminGymListProps) {
   }
 
   const items = gyms.data?.items ?? [];
+  const total = gyms.data?.total ?? 0;
+  const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const to = Math.min(page * PAGE_SIZE, total);
 
   return (
     <div className="space-y-5">
@@ -111,80 +180,104 @@ export function AdminGymList({ status, title, emptyLabel }: AdminGymListProps) {
         <div>
           <h1 className="display text-3xl font-bold sm:text-4xl">{title}</h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            {gyms.isLoading ? t('loading') : t('gymCount', { count: items.length })}
+            {gyms.isLoading
+              ? t('loading')
+              : t('gymCount', { count: total })}
           </p>
         </div>
-        <Link href="/admin/gyms/new" className="btn btn-primary !py-2 !px-4 text-sm">
-          {t('addGym')}
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <AdminGymViewToggle
+            view={view}
+            onChange={changeView}
+            ariaLabel={t('viewMode')}
+            listLabel={t('viewList')}
+            boardLabel={t('viewBoard')}
+          />
+          <Link
+            href="/admin/gyms/new"
+            className="btn btn-primary !py-2 !px-4 text-sm"
+          >
+            {t('addGym')}
+          </Link>
+        </div>
       </div>
 
       {!gyms.isLoading && items.length === 0 ? (
         <p className="text-[var(--muted)]">{emptyLabel}</p>
       ) : null}
 
-      <div className="space-y-3">
-        {items.map((gym, i) => (
-          <Reveal key={gym.id} delay={Math.min(i * 0.03, 0.25)}>
-            <div className="card-glass flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
-                <p className="font-medium">
-                  {gym.name}{' '}
-                  <span className="text-sm text-[var(--muted)]">
-                    ({moderationLabel(gym.moderationStatus, t)})
-                  </span>
-                </p>
-                <p className="text-sm text-[var(--muted)]">{gym.owner.email}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href={`/admin/gyms/${gym.id}`}
-                  className="btn btn-ghost !py-1.5 !px-3 text-xs"
-                >
-                  {t('edit')}
-                </Link>
-                <button
-                  type="button"
-                  className="btn btn-ghost !py-1.5 !px-3 text-xs"
-                  onClick={() =>
-                    moderate.mutate({ id: gym.id, nextStatus: 'APPROVED' })
-                  }
-                >
-                  {t('approve')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost !py-1.5 !px-3 text-xs"
-                  onClick={() =>
-                    moderate.mutate({ id: gym.id, nextStatus: 'REJECTED' })
-                  }
-                >
-                  {t('reject')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost !py-1.5 !px-3 text-xs"
-                  onClick={() =>
-                    featured.mutate({
-                      id: gym.id,
-                      isFeatured: !gym.isFeatured,
-                    })
-                  }
-                >
-                  {gym.isFeatured ? t('unfeature') : t('feature')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary !py-1.5 !px-3 text-xs"
-                  onClick={() => activate.mutate(gym.id)}
-                >
-                  {t('plusMonth')}
-                </button>
-              </div>
-            </div>
-          </Reveal>
-        ))}
-      </div>
+      {view === 'board' ? (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((gym, i) => (
+            <AdminGymBoardCard
+              key={gym.id}
+              gym={gym}
+              index={i}
+              onApprove={() =>
+                moderate.mutate({ id: gym.id, nextStatus: 'APPROVED' })
+              }
+              onReject={() =>
+                moderate.mutate({ id: gym.id, nextStatus: 'REJECTED' })
+              }
+              onToggleFeatured={() =>
+                featured.mutate({
+                  id: gym.id,
+                  isFeatured: !gym.isFeatured,
+                })
+              }
+              onActivate={() => activate.mutate(gym.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((gym, i) => (
+            <AdminGymListRow
+              key={gym.id}
+              gym={gym}
+              index={i}
+              statusLabel={moderationLabel(gym.moderationStatus, t)}
+              onApprove={() =>
+                moderate.mutate({ id: gym.id, nextStatus: 'APPROVED' })
+              }
+              onReject={() =>
+                moderate.mutate({ id: gym.id, nextStatus: 'REJECTED' })
+              }
+              onToggleFeatured={() =>
+                featured.mutate({
+                  id: gym.id,
+                  isFeatured: !gym.isFeatured,
+                })
+              }
+              onActivate={() => activate.mutate(gym.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {!gyms.isLoading && total > 0 ? (
+        <Reveal y={28} amount={0.35}>
+          <Pagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={goToPage}
+            previousLabel={tGyms('prev')}
+            nextLabel={tGyms('next')}
+            pageLabel={tGyms('pageInfo', { from, to, total })}
+            ariaLabel={tCommon('pagination')}
+          />
+        </Reveal>
+      ) : null}
     </div>
+  );
+}
+
+export function AdminGymList(props: AdminGymListProps) {
+  const t = useTranslations('admin');
+  return (
+    <Suspense fallback={<p className="text-[var(--muted)]">{t('loading')}</p>}>
+      <AdminGymListContent {...props} />
+    </Suspense>
   );
 }

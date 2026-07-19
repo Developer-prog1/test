@@ -1,3 +1,6 @@
+import type { LocalizedString } from '../lib/localize';
+import { emptyLocalized, serializeLocalized } from '../lib/localize';
+
 const AMENITY_KEYS = [
   'parking',
   'sauna',
@@ -38,9 +41,9 @@ export type AdminGymFormValues = {
   name: string;
   city: string;
   district: string;
-  address: string;
+  address: LocalizedString;
   phone: string;
-  description: string;
+  description: LocalizedString;
   amenities: string[];
   workingHours: Record<(typeof DAY_KEYS)[number], string> & { note: string };
   isFeatured: boolean;
@@ -48,12 +51,14 @@ export type AdminGymFormValues = {
   activateMonths: number;
   mediaUrls: string[];
   trainers: Array<{
+    id?: string;
     name: string;
     photoUrl: string;
     specialization: string;
     bio: string;
   }>;
   plans: Array<{
+    id?: string;
     title: string;
     description: string;
     priceAmd: string;
@@ -100,9 +105,9 @@ export function emptyAdminGymForm(): AdminGymFormValues {
     name: '',
     city: 'Yerevan',
     district: 'Kentron',
-    address: '',
+    address: emptyLocalized(),
     phone: '',
-    description: '',
+    description: emptyLocalized(),
     amenities: [],
     workingHours: {
       mon: '07:00-22:00',
@@ -136,14 +141,17 @@ export function toAdminGymPayload(
   values: AdminGymFormValues,
   mode: 'create' | 'edit',
 ): AdminGymPayload {
+  const address = serializeLocalized(values.address);
+  const description = serializeLocalized(values.description);
+
   const payload: AdminGymPayload = {
     ownerEmail: values.ownerEmail.trim(),
     name: values.name.trim(),
     city: values.city.trim(),
     district: values.district || undefined,
-    address: values.address.trim(),
+    address: address ?? '',
     phone: values.phone.trim() || undefined,
-    description: values.description.trim() || undefined,
+    description,
     amenities: values.amenities,
     workingHours: {
       ...DAY_KEYS.reduce(

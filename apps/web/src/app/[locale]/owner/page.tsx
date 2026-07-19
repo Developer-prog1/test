@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { apiFetch } from '../../../shared/api/client';
+import { formatDate } from '../../../shared/lib/format-date';
 import { localizeText } from '../../../shared/lib/localize';
 import { Link } from '../../../i18n/navigation';
 import { Reveal } from '../../../shared/ui/reveal';
@@ -55,7 +56,6 @@ function subscriptionLabel(
 
 export default function OwnerPage() {
   const t = useTranslations('owner');
-  const tCommon = useTranslations('common');
   const locale = useLocale();
   const qc = useQueryClient();
   const gym = useQuery({
@@ -85,14 +85,6 @@ export default function OwnerPage() {
       }>('/owner/subscription'),
   });
 
-  const checkout = useMutation({
-    mutationFn: () => apiFetch('/owner/subscription/checkout', { method: 'POST' }),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['owner-sub'] });
-      void qc.invalidateQueries({ queryKey: ['owner-gym'] });
-    },
-  });
-
   const markRead = useMutation({
     mutationFn: (id: string) =>
       apiFetch(`/owner/leads/${id}`, {
@@ -104,7 +96,7 @@ export default function OwnerPage() {
 
   if (gym.isError) {
     return (
-      <p className="container-shell py-16 text-[var(--accent-hot)]">
+      <p className="text-[var(--accent-hot)]">
         {t('loginRequired')}{' '}
         <Link href="/login" className="text-[var(--accent)]">
           {t('login')}
@@ -123,34 +115,41 @@ export default function OwnerPage() {
     | undefined;
 
   return (
-    <div className="container-shell space-y-10 py-12">
+    <div className="space-y-10">
       <Reveal>
         <h1 className="display text-4xl font-bold">{t('title')}</h1>
       </Reveal>
 
       {data ? (
-        <div className="grid gap-4 sm:grid-cols-4">
-          {[
-            {
-              label: t('gym'),
-              value: data.name,
-              sub: moderationLabel(data.moderationStatus, t),
-            },
-            { label: t('completeness'), value: `${data.completenessScore}%` },
-            { label: t('views'), value: data.stats?.viewCount ?? 0 },
-            { label: t('leadsWeek'), value: data.stats?.newLeadsWeek ?? 0 },
-          ].map((card, i) => (
-            <Reveal key={card.label} delay={i * 0.06}>
-              <div className="card-glass p-5">
-                <p className="text-sm text-[var(--muted)]">{card.label}</p>
-                <p className="display mt-2 text-2xl font-bold">{card.value}</p>
-                {card.sub ? (
-                  <p className="mt-1 text-sm text-[var(--muted)]">{card.sub}</p>
-                ) : null}
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-4">
+            {[
+              {
+                label: t('gym'),
+                value: data.name,
+                sub: moderationLabel(data.moderationStatus, t),
+              },
+              { label: t('completeness'), value: `${data.completenessScore}%` },
+              { label: t('views'), value: data.stats?.viewCount ?? 0 },
+              { label: t('leadsWeek'), value: data.stats?.newLeadsWeek ?? 0 },
+            ].map((card, i) => (
+              <Reveal key={card.label} delay={i * 0.06}>
+                <div className="card-glass p-5">
+                  <p className="text-sm text-[var(--muted)]">{card.label}</p>
+                  <p className="display mt-2 text-2xl font-bold">{card.value}</p>
+                  {card.sub ? (
+                    <p className="mt-1 text-sm text-[var(--muted)]">{card.sub}</p>
+                  ) : null}
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={0.2}>
+            <Link href="/owner/gym" className="btn btn-primary inline-flex">
+              {t('navGym')}
+            </Link>
+          </Reveal>
+        </>
       ) : null}
 
       <Reveal>
@@ -159,17 +158,12 @@ export default function OwnerPage() {
           <p className="text-sm text-[var(--muted)]">
             {subscriptionLabel(subscription.data?.subscription?.status, t)}
             {subscription.data?.subscription?.endsAt
-              ? ` · ${new Date(subscription.data.subscription.endsAt).toLocaleDateString(locale)}`
+              ? ` · ${formatDate(subscription.data.subscription.endsAt)}`
               : ''}
           </p>
-          <button
-            type="button"
-            onClick={() => checkout.mutate()}
-            className="btn btn-primary"
-          >
-            {t('payRenew')} ({subscription.data?.priceAmd ?? 10000}{' '}
-            {tCommon('currency')})
-          </button>
+          <Link href="/owner/packages" className="btn btn-primary inline-flex">
+            {t('payRenew')}
+          </Link>
         </section>
       </Reveal>
 

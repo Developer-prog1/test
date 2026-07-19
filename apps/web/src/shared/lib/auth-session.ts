@@ -7,6 +7,7 @@ export type AuthUser = {
   email: string;
   role: string;
   fullName: string | null;
+  phone?: string | null;
   avatarUrl: string | null;
 };
 

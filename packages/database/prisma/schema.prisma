@@ -109,6 +109,7 @@ model Trainer {
   photoUrl       String?
   specialization String?
   bio            String?
+  isActive       Boolean @default(true)
 }
 
 model MembershipPlan {
@@ -192,4 +193,19 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@unique([userId, gymId])
+}
+
+/** Platform listing packages sold to gym owners (GYM → GymHub). */
+model ListingPackage {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  months    Int
+  priceAmd  Int
+  popular   Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
 }

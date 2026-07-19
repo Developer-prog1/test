@@ -2,8 +2,8 @@
 
 import type { Dispatch, SetStateAction } from 'react';
 import { useTranslations } from 'next-intl';
-import { AutoGrowTextarea } from './auto-grow-textarea';
 import { DarkSelect } from './dark-select';
+import { LocalizedFields } from './localized-fields';
 import {
   AMENITY_KEYS,
   DAY_KEYS,
@@ -131,17 +131,14 @@ export function AdminGymBasicsSection({
             }
           />
         </label>
-        <label className="block space-y-1.5 md:col-span-2">
-          <span className="text-sm text-[var(--muted)]">{t('address')}</span>
-          <input
-            required
-            className="field"
-            value={values.address}
-            onChange={(event) =>
-              setValues((prev) => ({ ...prev, address: event.target.value }))
-            }
-          />
-        </label>
+        <LocalizedFields
+          label={t('address')}
+          hint={t('localizedFieldsHint')}
+          value={values.address}
+          required
+          inputName="address"
+          onChange={(address) => setValues((prev) => ({ ...prev, address }))}
+        />
         <label className="block space-y-1.5">
           <span className="text-sm text-[var(--muted)]">{t('phone')}</span>
           <input
@@ -167,20 +164,17 @@ export function AdminGymBasicsSection({
             }
           />
         </label>
-        <label className="block space-y-1.5 md:col-span-2">
-          <span className="text-sm text-[var(--muted)]">{t('description')}</span>
-          <AutoGrowTextarea
-            minRows={4}
-            className="w-full"
-            value={values.description}
-            onChange={(event) =>
-              setValues((prev) => ({
-                ...prev,
-                description: event.target.value,
-              }))
-            }
-          />
-        </label>
+        <LocalizedFields
+          label={t('description')}
+          hint={t('localizedFieldsHint')}
+          value={values.description}
+          multiline
+          minRows={4}
+          inputName="description"
+          onChange={(description) =>
+            setValues((prev) => ({ ...prev, description }))
+          }
+        />
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input

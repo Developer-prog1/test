@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Providers } from '../../shared/providers';
 import { SiteHeader } from '../../shared/ui/site-header';
 import { SiteFooter } from '../../shared/ui/site-footer';
+import { RoleAreaFooterGate } from '../../shared/ui/role-area-footer-gate';
 import { LocaleHtmlLang } from '../../shared/ui/locale-html-lang';
 import { routing } from '../../i18n/routing';
 
@@ -33,7 +34,9 @@ export default async function LocaleLayout({ children, params }: Props) {
         <main className="min-h-[calc(100vh-var(--header-height))] pt-[var(--header-height)]">
           {children}
         </main>
-        <SiteFooter />
+        <RoleAreaFooterGate>
+          <SiteFooter />
+        </RoleAreaFooterGate>
       </Providers>
     </NextIntlClientProvider>
   );

@@ -128,14 +128,16 @@ export default function HomePage() {
       </section>
 
       <div className="overflow-hidden border-y border-[var(--line)] bg-[var(--bg-elevated)] py-4">
-        <div className="marquee text-sm uppercase tracking-[0.28em] text-[var(--muted)]">
-          {[...MARQUEE_KEYS, ...MARQUEE_KEYS].map((key, i) => (
-            <span key={`${key}-${i}`} className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-              {t(key)}
-            </span>
-          ))}
-        </div>
+        <Reveal y={20} amount={0.4}>
+          <div className="marquee text-sm uppercase tracking-[0.28em] text-[var(--muted)]">
+            {[...MARQUEE_KEYS, ...MARQUEE_KEYS].map((key, i) => (
+              <span key={`${key}-${i}`} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                {t(key)}
+              </span>
+            ))}
+          </div>
+        </Reveal>
       </div>
 
       <section className="container-shell py-24">
@@ -183,7 +185,7 @@ export default function HomePage() {
       </section>
 
       <section className="container-shell pb-24">
-        <Reveal>
+        <Reveal y={48} amount={0.3} delay={0.05}>
           <div className="relative overflow-hidden rounded-[2rem] border border-[var(--line)]">
             <div className="absolute inset-0">
               <SafeImage src={BANNER} alt="" fill className="object-cover" />

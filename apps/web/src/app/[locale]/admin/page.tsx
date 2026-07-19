@@ -28,19 +28,22 @@ export default function AdminOverviewPage() {
     queryFn: () => apiFetch<OwnerRow[]>('/admin/owners'),
   });
   const subscriptions = useQuery({
-    queryKey: ['admin-subscriptions'],
-    queryFn: () => apiFetch<SubRow[]>('/admin/subscriptions'),
+    queryKey: ['admin-subscriptions', 'overview'],
+    queryFn: () =>
+      apiFetch<{ items: SubRow[]; total: number }>(
+        '/admin/subscriptions?limit=100',
+      ),
   });
 
   const stats = useMemo(() => {
     const items = gyms.data?.items ?? [];
+    const subs = subscriptions.data?.items ?? [];
     return {
       totalGyms: gyms.data?.total ?? items.length,
       pending: items.filter((item) => item.moderationStatus === 'PENDING').length,
       featured: items.filter((item) => item.isFeatured).length,
       owners: owners.data?.length ?? 0,
-      activeSubs:
-        subscriptions.data?.filter((item) => item.status === 'ACTIVE').length ?? 0,
+      activeSubs: subs.filter((item) => item.status === 'ACTIVE').length,
     };
   }, [gyms.data, owners.data, subscriptions.data]);
 

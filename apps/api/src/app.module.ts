@@ -8,6 +8,7 @@ import { validateEnv } from './config/env.validation';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { HttpLoggingInterceptor } from './common/interceptors/http-logging.interceptor';
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
+import { R2StorageModule } from './common/storage/r2-storage.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -29,6 +30,7 @@ import { AdminModule } from './modules/admin/admin.module';
         join(process.cwd(), '.env'),
       ],
     }),
+    R2StorageModule,
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     ScheduleModule.forRoot(),
     PrismaModule,

@@ -469,6 +469,29 @@ async function upsertUser(
 }
 
 async function main() {
+  const listingDefaults = [
+    { code: '1m', months: 1, priceAmd: 10_000, popular: false, sortOrder: 0 },
+    { code: '3m', months: 3, priceAmd: 27_000, popular: true, sortOrder: 1 },
+    { code: '6m', months: 6, priceAmd: 51_000, popular: false, sortOrder: 2 },
+    { code: '12m', months: 12, priceAmd: 90_000, popular: false, sortOrder: 3 },
+  ];
+  for (const pack of listingDefaults) {
+    await prisma.listingPackage.upsert({
+      where: { code: pack.code },
+      update: {
+        months: pack.months,
+        priceAmd: pack.priceAmd,
+        popular: pack.popular,
+        sortOrder: pack.sortOrder,
+        isActive: true,
+      },
+      create: {
+        ...pack,
+        isActive: true,
+      },
+    });
+  }
+
   const admin = await upsertUser(
     'admin@gymhub.am',
     'ADMIN',
@@ -484,8 +507,20 @@ async function main() {
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80',
   );
 
+  const reebokOwner = await upsertUser(
+    'reebok@gymhub.am',
+    'GYM_OWNER',
+    'Reebok Owner',
+    'Owner123!',
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&crop=faces&w=200&h=200&q=80',
+  );
+
   const owners = [];
   for (let i = 0; i < GYMS.length; i += 1) {
+    if (GYMS[i].slug === 'reebok-sports-club') {
+      owners.push(reebokOwner);
+      continue;
+    }
     owners.push(
       await upsertUser(
         `owner${i + 1}@gymhub.am`,

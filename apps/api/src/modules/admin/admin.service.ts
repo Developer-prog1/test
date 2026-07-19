@@ -1,10 +1,12 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { API_ERROR_CODES } from '@gymhub/shared';
 import * as argon2 from 'argon2';
+import { Prisma } from '@gymhub/database';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { paginate } from '../../common/dto/pagination.dto';
@@ -17,6 +19,24 @@ import type {
 } from './admin-gym.dto';
 
 const DEFAULT_OWNER_PASSWORD = 'Owner123!';
+
+type ListingPackageInput = {
+  code: string;
+  months: number;
+  priceAmd: number;
+  popular?: boolean;
+  isActive?: boolean;
+  sortOrder?: number;
+};
+
+type ListingPackagePatch = {
+  code?: string;
+  months?: number;
+  priceAmd?: number;
+  popular?: boolean;
+  isActive?: boolean;
+  sortOrder?: number;
+};
 
 @Injectable()
 export class AdminService {
@@ -50,6 +70,13 @@ export class AdminService {
         include: {
           owner: { select: { id: true, email: true, fullName: true } },
           subscriptions: { orderBy: { endsAt: 'desc' }, take: 1 },
+          media: { orderBy: { sortOrder: 'asc' }, take: 1 },
+          plans: {
+            where: { isActive: true },
+            orderBy: { priceAmd: 'asc' },
+            take: 1,
+            select: { priceAmd: true },
+          },
           _count: { select: { media: true, trainers: true, plans: true } },
         },
       }),
@@ -132,12 +159,18 @@ export class AdminService {
     return updated;
   }
 
-  async listSubscriptions() {
-    return this.prisma.gymSubscription.findMany({
-      orderBy: { endsAt: 'desc' },
-      take: 100,
-      include: { gym: { select: { id: true, name: true, slug: true } } },
-    });
+  async listSubscriptions(page = 1, limit = 20) {
+    const { skip, take, page: p, pageSize } = paginate(page, limit);
+    const [items, total] = await Promise.all([
+      this.prisma.gymSubscription.findMany({
+        orderBy: { endsAt: 'desc' },
+        skip,
+        take,
+        include: { gym: { select: { id: true, name: true, slug: true } } },
+      }),
+      this.prisma.gymSubscription.count(),
+    ]);
+    return { items, total, page: p, pageSize };
   }
 
   async activateSubscription(actorId: string, gymId: string, months = 1) {
@@ -414,5 +447,133 @@ export class AdminService {
       });
     }
     return full;
+  }
+
+  listListingPackages() {
+    return this.subscriptionsService.listAllPackages();
+  }
+
+  async createListingPackage(actorId: string, data: ListingPackageInput) {
+    const code = data.code.trim().toLowerCase();
+    try {
+      const created = await this.prisma.listingPackage.create({
+        data: {
+          code,
+          months: data.months,
+          priceAmd: data.priceAmd,
+          popular: data.popular ?? false,
+          isActive: data.isActive ?? true,
+          sortOrder: data.sortOrder ?? 0,
+        },
+      });
+      await this.prisma.adminAuditLog.create({
+        data: {
+          actorId,
+          action: 'LISTING_PACKAGE_CREATE',
+          entityType: 'ListingPackage',
+          entityId: created.id,
+          meta: { code: created.code },
+        },
+      });
+      return created;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException({
+          code: API_ERROR_CODES.CONFLICT,
+          message: 'Package code already exists',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async updateListingPackage(
+    actorId: string,
+    id: string,
+    data: ListingPackagePatch,
+  ) {
+    const existing = await this.prisma.listingPackage.findUnique({
+      where: { id },
+    });
+    if (!existing) {
+      throw new NotFoundException({
+        code: API_ERROR_CODES.NOT_FOUND,
+        message: 'Package not found',
+      });
+    }
+
+    try {
+      const updated = await this.prisma.listingPackage.update({
+        where: { id },
+        data: {
+          ...(data.code != null
+            ? { code: data.code.trim().toLowerCase() }
+            : {}),
+          ...(data.months != null ? { months: data.months } : {}),
+          ...(data.priceAmd != null ? { priceAmd: data.priceAmd } : {}),
+          ...(data.popular != null ? { popular: data.popular } : {}),
+          ...(data.isActive != null ? { isActive: data.isActive } : {}),
+          ...(data.sortOrder != null ? { sortOrder: data.sortOrder } : {}),
+        },
+      });
+      await this.prisma.adminAuditLog.create({
+        data: {
+          actorId,
+          action: 'LISTING_PACKAGE_UPDATE',
+          entityType: 'ListingPackage',
+          entityId: updated.id,
+          meta: data,
+        },
+      });
+      return updated;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException({
+          code: API_ERROR_CODES.CONFLICT,
+          message: 'Package code already exists',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async deleteListingPackage(actorId: string, id: string) {
+    const existing = await this.prisma.listingPackage.findUnique({
+      where: { id },
+    });
+    if (!existing) {
+      throw new NotFoundException({
+        code: API_ERROR_CODES.NOT_FOUND,
+        message: 'Package not found',
+      });
+    }
+
+    const activeCount = await this.prisma.listingPackage.count({
+      where: { isActive: true },
+    });
+    if (existing.isActive && activeCount <= 1) {
+      throw new BadRequestException({
+        code: API_ERROR_CODES.VALIDATION_ERROR,
+        message: 'Keep at least one active package',
+      });
+    }
+
+    await this.prisma.listingPackage.delete({ where: { id } });
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorId,
+        action: 'LISTING_PACKAGE_DELETE',
+        entityType: 'ListingPackage',
+        entityId: id,
+        meta: { code: existing.code },
+      },
+    });
+    return { ok: true };
   }
 }
