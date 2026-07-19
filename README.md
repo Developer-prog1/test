@@ -88,9 +88,9 @@ packages/shared   shared enums/types
 
 ## Env
 
-- Root `.env` — secrets (Neon, R2, JWT) — **gitignored**
-- `apps/web/.env.local` — միայն `NEXT_PUBLIC_*`
+- Root `.env` — **մեկ ֆայլ** ամբողջ monorepo-ի համար (API, web, Prisma) — **gitignored**
 - `.env.example` — օրինակ առանց գաղտնիքների
+- `apps/web/.env.local` **չօգտագործել**
 
 ---
 
