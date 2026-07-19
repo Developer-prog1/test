@@ -1,0 +1,26 @@
+{
+  "name": "gymhub",
+  "private": true,
+  "packageManager": "pnpm@11.13.0",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build": "turbo run build",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build",
+    "lint": "pnpm --filter web lint",
+    "lint:web": "pnpm --filter web lint",
+    "lint:api": "pnpm --filter api lint",
+    "lint:all": "turbo run lint --filter=web --filter=api",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @gymhub/database generate",
+    "db:migrate": "pnpm --filter @gymhub/database migrate:dev",
+    "db:push": "pnpm --filter @gymhub/database db:push",
+    "db:seed": "pnpm --filter @gymhub/database seed",
+    "db:studio": "pnpm --filter @gymhub/database studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.9.3"
+  }
+}

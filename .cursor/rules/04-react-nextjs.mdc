@@ -1,0 +1,31 @@
+---
+description: React 19 + Next.js App Router — RSC default, client boundaries, performance.
+globs: ["**/*.tsx", "**/app/**", "**/components/**", "**/features/**"]
+alwaysApply: false
+---
+
+# React and Next.js
+
+- **Server Components by default** — add `'use client'` at the smallest practical boundary when hooks, browser APIs, event handlers, or interactive client state require it. Do not mark an entire tree as client code to work around a local issue.
+- Prefer **named exports** for reusable components; follow Next.js default-export contracts for pages, layouts, and other convention files.
+- **Colocate** feature code; avoid prop-drilling hell — use composition or context sparingly.
+- **Server state** — fetch on the server or use the approved client data library per `16-state-management.mdc`.
+- **`next/image`** for images; **`next/link`** for navigation.
+- **Metadata** (`generateMetadata` / static) for SEO where applicable.
+- **Loading / error / not-found** UI for route segments.
+
+## Responsive (mandatory)
+
+- **Mobile-first.** Build for small screens first; enhance with `sm` / `md` / `lg` breakpoints.
+- Every new or changed UI must remain usable on phone, tablet, and desktop — layout, nav, forms, tables, modals, galleries.
+- Prefer fluid widths, wrapping, and stacking over fixed desktop-only grids.
+- Touch targets must be usable on mobile; avoid hover-only critical actions.
+- Do not treat desktop polish as complete if mobile is broken or unreadable.
+- **Dropdowns:** use shared `DarkSelect` for every filter/form select. Never introduce a visible native `<select>` or a parallel custom dropdown. See ADR-009 (`docs/DECISIONS.md`).
+
+## Forbidden
+
+- Fetching secrets or DB in client components.
+- Huge client bundles — move data fetching and heavy logic server-side when possible.
+- Desktop-only UI shipped without a working responsive layout.
+- Visible native `<select>` elements (use `DarkSelect` instead).

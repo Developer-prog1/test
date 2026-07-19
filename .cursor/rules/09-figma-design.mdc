@@ -1,0 +1,16 @@
+---
+description: Figma → code — tokens, components, visual parity.
+globs: ["**/*.tsx", "**/components/**", "**/styles/**", "**/ui/**"]
+alwaysApply: false
+---
+
+# Figma and UI
+
+For the complete design-analysis, implementation, and visual-verification workflow, use [`figma-to-production`](../../.agents/skills/figma-to-production/SKILL.md).
+
+- Use **design tokens** (CSS variables / Tailwind theme) — avoid one-off hex in many places.
+- **Match layout and spacing** from specs; ask if design is ambiguous.
+- **Responsive is mandatory** — every screen and component must work on mobile, tablet, and desktop. Prefer mobile-first breakpoints; never ship desktop-only layouts.
+- **Accessibility**: semantic HTML, labels, focus states, contrast.
+- Prefer **existing UI primitives** in the repo over new ad-hoc styles.
+- **Dropdowns / selects:** always use `DarkSelect` (`apps/web/src/shared/ui/dark-select.tsx`). Do **not** ship visible native `<select>` or a one-off dropdown. See ADR-009 in `docs/DECISIONS.md`.

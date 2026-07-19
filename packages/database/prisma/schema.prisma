@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  GYM_OWNER
+  ADMIN
+}
+
+enum GymModerationStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+  PAST_DUE
+}
+
+enum LeadStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  fullName     String?
+  phone        String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  gyms         Gym[]
+  leads        Lead[]
+  auditLogs    AdminAuditLog[]
+  favorites    Favorite[]
+}
+
+model Gym {
+  id                 String              @id @default(cuid())
+  ownerId            String
+  owner              User                @relation(fields: [ownerId], references: [id])
+  slug               String              @unique
+  name               String
+  description        String?
+  city               String
+  district           String?
+  address            String
+  phone              String?
+  workingHours       Json?
+  amenities          String[]            @default([])
+  latitude           Float?
+  longitude          Float?
+  moderationStatus   GymModerationStatus @default(DRAFT)
+  isFeatured         Boolean             @default(false)
+  completenessScore  Int                 @default(0)
+  viewCount          Int                 @default(0)
+  ratingAvg          Decimal?            @db.Decimal(3, 2)
+  ratingCount        Int                 @default(0)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  media              GymMedia[]
+  trainers           Trainer[]
+  plans              MembershipPlan[]
+  leads              Lead[]
+  subscriptions      GymSubscription[]
+  payments           Payment[]
+  favorites          Favorite[]
+
+  @@index([city, moderationStatus])
+  @@index([district])
+  @@index([isFeatured])
+}
+
+model GymMedia {
+  id        String @id @default(cuid())
+  gymId     String
+  gym       Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  url       String
+  sortOrder Int    @default(0)
+  kind      String @default("gallery")
+}
+
+model Trainer {
+  id             String  @id @default(cuid())
+  gymId          String
+  gym            Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  name           String
+  photoUrl       String?
+  specialization String?
+  bio            String?
+}
+
+model MembershipPlan {
+  id           String  @id @default(cuid())
+  gymId        String
+  gym          Gym     @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  priceAmd     Int
+  durationDays Int?
+  isActive     Boolean @default(true)
+}
+
+model Lead {
+  id            String     @id @default(cuid())
+  gymId         String
+  gym           Gym        @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?      @relation(fields: [userId], references: [id])
+  name          String
+  phone         String
+  note          String?
+  wantsTrialDay Boolean    @default(false)
+  status        LeadStatus @default(NEW)
+  createdAt     DateTime   @default(now())
+
+  @@index([gymId, status, createdAt])
+  @@index([gymId, phone, createdAt])
+}
+
+model GymSubscription {
+  id        String             @id @default(cuid())
+  gymId     String
+  gym       Gym                @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  status    SubscriptionStatus @default(ACTIVE)
+  priceAmd  Int
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  payments  Payment[]
+
+  @@index([gymId, status, endsAt])
+}
+
+model Payment {
+  id             String             @id @default(cuid())
+  subscriptionId String?
+  subscription   GymSubscription?   @relation(fields: [subscriptionId], references: [id])
+  gymId          String
+  gym            Gym                @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  amountAmd      Int
+  status         PaymentStatus      @default(PENDING)
+  provider       String             @default("manual")
+  providerRef    String?            @unique
+  createdAt      DateTime           @default(now())
+
+  @@index([gymId, status])
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gymId     String
+  gym       Gym      @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, gymId])
+}

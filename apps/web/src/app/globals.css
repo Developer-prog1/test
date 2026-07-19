@@ -1,0 +1,232 @@
+@import 'tailwindcss';
+
+:root {
+  --bg: #0b0c0e;
+  --bg-elevated: #12141a;
+  --surface: #181b22;
+  --line: rgba(244, 241, 236, 0.1);
+  --text: #f4f1ec;
+  --muted: #9b968c;
+  --accent: #d6ff3e;
+  --accent-hot: #ff5a2f;
+  --glow: rgba(214, 255, 62, 0.18);
+  --radius: 1.25rem;
+  --header-height: 5.75rem;
+  --admin-sidebar-width: 16.5rem;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --header-height: 7.25rem;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Keep layout stable when page height changes (scrollbar on/off) */
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--accent);
+  color: #111;
+}
+
+.container-shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.9rem 1.35rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #111;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.card-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.field {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  padding: 0.85rem 1rem;
+}
+
+.field:focus {
+  outline: 2px solid rgba(214, 255, 62, 0.35);
+  border-color: transparent;
+}
+
+/* Thin dark scrollbars (Chrome / Edge / Safari + Firefox) */
+.scrollbar-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 255, 62, 0.55) transparent;
+}
+
+.scrollbar-dark::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-track {
+  margin: 10px 2px;
+  background: transparent;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(214, 255, 62, 0.7),
+    rgba(214, 255, 62, 0.25)
+  );
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(214, 255, 62, 0.15);
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(214, 255, 62, 0.9),
+    rgba(214, 255, 62, 0.4)
+  );
+}
+
+.scrollbar-dark::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.scrollbar-dark::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, var(--glow), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(255, 90, 47, 0.18), transparent 30%),
+    linear-gradient(180deg, transparent, rgba(11, 12, 14, 0.55) 55%, var(--bg));
+  pointer-events: none;
+}
+
+.hero-drift {
+  will-change: transform;
+  animation: hero-drift 32s ease-in-out infinite alternate;
+}
+
+@keyframes hero-drift {
+  0% {
+    transform: scale(1.05) translate(0%, 0%);
+  }
+  33% {
+    transform: scale(1.14) translate(-3.5%, -2%);
+  }
+  66% {
+    transform: scale(1.18) translate(2%, -3.5%);
+  }
+  100% {
+    transform: scale(1.1) translate(-2%, 1.5%);
+  }
+}
+
+.marquee {
+  display: flex;
+  gap: 2rem;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .marquee,
+  .hero-drift {
+    animation: none;
+  }
+  .btn:hover {
+    transform: none;
+  }
+}
