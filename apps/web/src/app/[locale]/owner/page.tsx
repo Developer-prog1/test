@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { apiFetch } from '../../../shared/api/client';
+import { formatDate } from '../../../shared/lib/format-date';
 import { localizeText } from '../../../shared/lib/localize';
 import { Link } from '../../../i18n/navigation';
 import { Reveal } from '../../../shared/ui/reveal';
@@ -157,7 +158,7 @@ export default function OwnerPage() {
           <p className="text-sm text-[var(--muted)]">
             {subscriptionLabel(subscription.data?.subscription?.status, t)}
             {subscription.data?.subscription?.endsAt
-              ? ` · ${new Date(subscription.data.subscription.endsAt).toLocaleDateString(locale)}`
+              ? ` · ${formatDate(subscription.data.subscription.endsAt)}`
               : ''}
           </p>
           <Link href="/owner/packages" className="btn btn-primary inline-flex">

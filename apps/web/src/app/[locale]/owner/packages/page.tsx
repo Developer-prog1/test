@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { ApiError, apiFetch } from '../../../../shared/api/client';
+import { formatDate } from '../../../../shared/lib/format-date';
 import { Link } from '../../../../i18n/navigation';
 import { Reveal } from '../../../../shared/ui/reveal';
 
@@ -116,7 +117,7 @@ export default function OwnerPackagesPage() {
             {subscriptionLabel(current?.status, t)}
             {current?.endsAt
               ? ` · ${t('validUntil', {
-                  date: new Date(current.endsAt).toLocaleDateString(locale),
+                  date: formatDate(current.endsAt),
                 })}`
               : ''}
           </p>

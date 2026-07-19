@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../../../../shared/api/client';
+import { formatDate } from '../../../../shared/lib/format-date';
 import { Link } from '../../../../i18n/navigation';
 import { Pagination } from '../../../../shared/ui/pagination';
 import { scrollPortalToTop } from '../../../../shared/ui/portal-main';
@@ -49,7 +50,6 @@ export default function AdminSubscriptionsPage() {
   const t = useTranslations('admin');
   const tGyms = useTranslations('gyms');
   const tCommon = useTranslations('common');
-  const locale = useLocale();
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
 
@@ -130,8 +130,7 @@ export default function AdminSubscriptionsPage() {
                   </span>
                 </p>
                 <p className="text-sm text-[var(--muted)]">
-                  {new Date(sub.startsAt).toLocaleDateString(locale)} →{' '}
-                  {new Date(sub.endsAt).toLocaleDateString(locale)} ·{' '}
+                  {formatDate(sub.startsAt)} → {formatDate(sub.endsAt)} ·{' '}
                   {sub.priceAmd.toLocaleString()} {t('currencyAmd')}
                 </p>
               </div>
