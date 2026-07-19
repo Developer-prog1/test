@@ -292,6 +292,8 @@
     "editTrainer": "Edit",
     "saveTrainer": "Save trainer",
     "removeTrainer": "Remove",
+    "closePreview": "Close",
+    "noTrainerBio": "No bio yet.",
     "trainerSaveFailed": "Could not save trainer.",
     "trainerDeleteFailed": "Could not remove trainer.",
     "scheduleTitle": "Schedule",

@@ -292,6 +292,8 @@
     "editTrainer": "Изменить",
     "saveTrainer": "Сохранить тренера",
     "removeTrainer": "Удалить",
+    "closePreview": "Закрыть",
+    "noTrainerBio": "Биографии пока нет.",
     "trainerSaveFailed": "Не удалось сохранить тренера.",
     "trainerDeleteFailed": "Не удалось удалить тренера.",
     "scheduleTitle": "Расписание",

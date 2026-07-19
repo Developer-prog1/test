@@ -292,6 +292,8 @@
     "editTrainer": "Խմբագրել",
     "saveTrainer": "Պահել մարզիչին",
     "removeTrainer": "Հեռացնել",
+    "closePreview": "Փակել",
+    "noTrainerBio": "Կենսագրություն դեռ չկա։",
     "trainerSaveFailed": "Չհաջողվեց պահել մարզիչին։",
     "trainerDeleteFailed": "Չհաջողվեց հեռացնել մարզիչին։",
     "scheduleTitle": "Գրաֆիկ",

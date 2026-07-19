@@ -8,8 +8,9 @@ import { Link } from '../../../../i18n/navigation';
 import { Reveal } from '../../../../shared/ui/reveal';
 import {
   emptyOwnerTrainerDraft,
-  OwnerTrainerCard,
   OwnerTrainerEditor,
+  OwnerTrainerGridCard,
+  OwnerTrainerPreviewModal,
   type OwnerTrainer,
 } from '../../../../shared/ui/owner-trainer-editor';
 
@@ -19,6 +20,7 @@ export default function OwnerTrainersPage() {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState(emptyOwnerTrainerDraft);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const trainers = useQuery({
     queryKey: ['owner-trainers'],
@@ -36,12 +38,13 @@ export default function OwnerTrainersPage() {
           bio: draft.bio.trim() || undefined,
         }),
       }),
-    onSuccess: async () => {
+    onSuccess: async (created) => {
       setCreateError(null);
       setDraft(emptyOwnerTrainerDraft());
       setAdding(false);
       await qc.invalidateQueries({ queryKey: ['owner-trainers'] });
       await qc.invalidateQueries({ queryKey: ['owner-gym'] });
+      setSelectedId(created.id);
     },
     onError: (err: unknown) => {
       setCreateError(
@@ -71,6 +74,8 @@ export default function OwnerTrainersPage() {
   }
 
   const items = trainers.data ?? [];
+  const selected =
+    items.find((item) => item.id === selectedId) ?? null;
 
   return (
     <div className="space-y-8">
@@ -118,16 +123,27 @@ export default function OwnerTrainersPage() {
         </Reveal>
       ) : null}
 
-      <div className="space-y-4">
-        {items.length === 0 && !adding ? (
-          <p className="text-sm text-[var(--muted)]">{t('emptyTrainers')}</p>
-        ) : null}
-        {items.map((trainer, index) => (
-          <Reveal key={trainer.id} delay={index * 0.04}>
-            <OwnerTrainerCard trainer={trainer} onChanged={refresh} />
-          </Reveal>
-        ))}
-      </div>
+      {items.length === 0 && !adding ? (
+        <p className="text-sm text-[var(--muted)]">{t('emptyTrainers')}</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((trainer, index) => (
+            <Reveal key={trainer.id} delay={index * 0.04}>
+              <OwnerTrainerGridCard
+                trainer={trainer}
+                onOpen={() => setSelectedId(trainer.id)}
+              />
+            </Reveal>
+          ))}
+        </div>
+      )}
+
+      <OwnerTrainerPreviewModal
+        trainer={selected}
+        open={Boolean(selected)}
+        onClose={() => setSelectedId(null)}
+        onChanged={refresh}
+      />
     </div>
   );
 }
