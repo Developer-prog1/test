@@ -50,6 +50,13 @@ export class AdminService {
         include: {
           owner: { select: { id: true, email: true, fullName: true } },
           subscriptions: { orderBy: { endsAt: 'desc' }, take: 1 },
+          media: { orderBy: { sortOrder: 'asc' }, take: 1 },
+          plans: {
+            where: { isActive: true },
+            orderBy: { priceAmd: 'asc' },
+            take: 1,
+            select: { priceAmd: true },
+          },
           _count: { select: { media: true, trainers: true, plans: true } },
         },
       }),
