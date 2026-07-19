@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -15,7 +16,10 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
+  MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ROLES } from '@gymhub/shared';
@@ -45,6 +49,73 @@ class ActivateSubDto {
   @IsInt()
   @Min(1)
   months?: number;
+}
+
+class CreateListingPackageDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(32)
+  @Matches(/^[a-z0-9_-]+$/i)
+  code!: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  months!: number;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  priceAmd!: number;
+
+  @IsOptional()
+  @IsBoolean()
+  popular?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+}
+
+class UpdateListingPackageDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(32)
+  @Matches(/^[a-z0-9_-]+$/i)
+  code?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  months?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  priceAmd?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  popular?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
 }
 
 @ApiTags('admin')
@@ -131,6 +202,36 @@ export class AdminController {
       dto.gymId,
       dto.months ?? 1,
     );
+  }
+
+  @Get('packages')
+  listPackages() {
+    return this.adminService.listListingPackages();
+  }
+
+  @Post('packages')
+  createPackage(
+    @CurrentUser() user: { id: string },
+    @Body() dto: CreateListingPackageDto,
+  ) {
+    return this.adminService.createListingPackage(user.id, dto);
+  }
+
+  @Patch('packages/:id')
+  updatePackage(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+    @Body() dto: UpdateListingPackageDto,
+  ) {
+    return this.adminService.updateListingPackage(user.id, id, dto);
+  }
+
+  @Delete('packages/:id')
+  deletePackage(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+  ) {
+    return this.adminService.deleteListingPackage(user.id, id);
   }
 
   @Get('audit')

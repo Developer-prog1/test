@@ -469,6 +469,29 @@ async function upsertUser(
 }
 
 async function main() {
+  const listingDefaults = [
+    { code: '1m', months: 1, priceAmd: 10_000, popular: false, sortOrder: 0 },
+    { code: '3m', months: 3, priceAmd: 27_000, popular: true, sortOrder: 1 },
+    { code: '6m', months: 6, priceAmd: 51_000, popular: false, sortOrder: 2 },
+    { code: '12m', months: 12, priceAmd: 90_000, popular: false, sortOrder: 3 },
+  ];
+  for (const pack of listingDefaults) {
+    await prisma.listingPackage.upsert({
+      where: { code: pack.code },
+      update: {
+        months: pack.months,
+        priceAmd: pack.priceAmd,
+        popular: pack.popular,
+        sortOrder: pack.sortOrder,
+        isActive: true,
+      },
+      create: {
+        ...pack,
+        isActive: true,
+      },
+    });
+  }
+
   const admin = await upsertUser(
     'admin@gymhub.am',
     'ADMIN',

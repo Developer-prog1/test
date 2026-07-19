@@ -7,7 +7,6 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   API_ERROR_CODES,
-  getListingPackage,
   LISTING_PACKAGES,
   SUBSCRIPTION_PRICE_AMD,
 } from '@gymhub/shared';
@@ -29,32 +28,92 @@ export class SubscriptionsService {
     );
   }
 
+  /** Ensure default packages exist (first boot / empty table). */
+  async ensureDefaultPackages() {
+    const count = await this.prisma.listingPackage.count();
+    if (count > 0) return;
+
+    await this.prisma.listingPackage.createMany({
+      data: LISTING_PACKAGES.map((item, index) => ({
+        code: item.id,
+        months: item.months,
+        priceAmd: item.priceAmd,
+        popular: item.popular,
+        isActive: true,
+        sortOrder: index,
+      })),
+    });
+  }
+
+  async listActivePackages() {
+    await this.ensureDefaultPackages();
+    return this.prisma.listingPackage.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { months: 'asc' }],
+    });
+  }
+
+  async listAllPackages() {
+    await this.ensureDefaultPackages();
+    return this.prisma.listingPackage.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { months: 'asc' }],
+    });
+  }
+
+  private async resolvePackage(packageId?: string) {
+    await this.ensureDefaultPackages();
+
+    if (packageId) {
+      const byId = await this.prisma.listingPackage.findFirst({
+        where: { id: packageId, isActive: true },
+      });
+      if (byId) return byId;
+
+      const byCode = await this.prisma.listingPackage.findFirst({
+        where: { code: packageId, isActive: true },
+      });
+      if (byCode) return byCode;
+    }
+
+    const fallback = await this.prisma.listingPackage.findFirst({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { months: 'asc' }],
+    });
+    if (!fallback) {
+      throw new BadRequestException({
+        code: API_ERROR_CODES.VALIDATION_ERROR,
+        message: 'No listing packages configured',
+      });
+    }
+    return fallback;
+  }
+
   async getMine(ownerId: string) {
     const gym = await this.ownerService.requireGym(ownerId);
-    const subscription = await this.prisma.gymSubscription.findFirst({
-      where: { gymId: gym.id },
-      orderBy: { endsAt: 'desc' },
-    });
+    const [subscription, packages] = await Promise.all([
+      this.prisma.gymSubscription.findFirst({
+        where: { gymId: gym.id },
+        orderBy: { endsAt: 'desc' },
+      }),
+      this.listActivePackages(),
+    ]);
+
     return {
       gymId: gym.id,
       priceAmd: this.priceAmd,
-      packages: LISTING_PACKAGES.map((item) => ({ ...item })),
+      packages: packages.map((item) => ({
+        id: item.id,
+        code: item.code,
+        months: item.months,
+        priceAmd: item.priceAmd,
+        popular: item.popular,
+      })),
       subscription,
     };
   }
 
   async checkout(ownerId: string, packageId?: string) {
-    const pack = packageId
-      ? getListingPackage(packageId)
-      : getListingPackage('1m');
-
-    if (!pack) {
-      throw new BadRequestException({
-        code: API_ERROR_CODES.VALIDATION_ERROR,
-        message: 'Unknown listing package',
-      });
-    }
-
+    const pack = await this.resolvePackage(packageId);
     const gym = await this.ownerService.requireGym(ownerId);
     const providerRef = `manual_${randomUUID()}`;
     const payment = await this.prisma.payment.create({

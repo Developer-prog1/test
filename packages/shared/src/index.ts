@@ -83,7 +83,7 @@ export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES
 
 export const SUBSCRIPTION_PRICE_AMD = 10_000;
 
-/** Platform listing packages (GYM → GymHub). Prices in AMD. */
+/** Default platform listing packages (seed / bootstrap). Live data lives in DB. */
 export const LISTING_PACKAGES = [
   {
     id: '1m',
@@ -111,8 +111,9 @@ export const LISTING_PACKAGES = [
   },
 ] as const;
 
-export type ListingPackageId = (typeof LISTING_PACKAGES)[number]['id'];
+export type ListingPackageCode = (typeof LISTING_PACKAGES)[number]['id'];
 
+/** @deprecated Prefer DB packages; kept for seed bootstrap by code. */
 export function getListingPackage(id: string) {
   return LISTING_PACKAGES.find((item) => item.id === id);
 }

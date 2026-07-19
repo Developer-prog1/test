@@ -1,19 +1,16 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString } from 'class-validator';
-import { LISTING_PACKAGES, ROLES } from '@gymhub/shared';
+import { IsOptional, IsString } from 'class-validator';
+import { ROLES } from '@gymhub/shared';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SubscriptionsService } from './subscriptions.service';
 
-const PACKAGE_IDS: string[] = LISTING_PACKAGES.map((item) => item.id);
-
 class CheckoutDto {
   @IsOptional()
   @IsString()
-  @IsIn(PACKAGE_IDS)
   packageId?: string;
 }
 

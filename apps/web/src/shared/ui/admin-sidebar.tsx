@@ -92,6 +92,26 @@ function SubsIcon() {
   );
 }
 
+function PackagesIcon() {
+  return (
+    <PortalIcon>
+      <path
+        d="M4.5 8.5 12 4l7.5 4.5v7L12 20l-7.5-4.5v-7Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 12v8M4.5 8.5 12 12l7.5-3.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </PortalIcon>
+  );
+}
+
 export function AdminSidebar() {
   const t = useTranslations('admin');
 
@@ -126,6 +146,12 @@ export function AdminSidebar() {
         label: t('navSubscriptions'),
         match: 'exact' as const,
         icon: SubsIcon,
+      },
+      {
+        href: '/admin/packages',
+        label: t('navPackages'),
+        match: 'exact' as const,
+        icon: PackagesIcon,
       },
       {
         href: '/admin/settings',

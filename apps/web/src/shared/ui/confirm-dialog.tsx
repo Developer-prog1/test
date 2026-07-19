@@ -12,6 +12,7 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   cancelLabel,
+  pendingLabel,
   tone = 'danger',
   pending = false,
   onConfirm,
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   description: string;
   confirmLabel: string;
   cancelLabel?: string;
+  pendingLabel?: string;
   tone?: ConfirmDialogTone;
   pending?: boolean;
   onConfirm: () => void;
@@ -127,7 +129,7 @@ export function ConfirmDialog({
                 disabled={pending}
                 onClick={onConfirm}
               >
-                {pending ? t('saving') : confirmLabel}
+                {pending ? pendingLabel ?? t('saving') : confirmLabel}
               </button>
             </div>
           </motion.div>
