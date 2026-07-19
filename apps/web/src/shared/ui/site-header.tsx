@@ -240,9 +240,13 @@ export function SiteHeader() {
     setAccountOpen((value) => !value);
   }
 
-  const shellClass = scrolled
-    ? 'border-[rgba(214,255,62,0.22)] bg-[rgba(14,16,20,0.9)] shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(214,255,62,0.06)]'
-    : 'border-[rgba(244,241,236,0.14)] bg-[rgba(18,20,26,0.42)] shadow-[0_16px_48px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]';
+  const isAdminArea = pathname === '/admin' || pathname.startsWith('/admin/');
+
+  const shellClass = isAdminArea
+    ? 'border-[rgba(244,241,236,0.12)] bg-[linear-gradient(135deg,rgba(34,38,48,0.98),rgba(24,27,34,0.99))] shadow-[0_16px_48px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_rgba(214,255,62,0.04)]'
+    : scrolled
+      ? 'border-[rgba(214,255,62,0.22)] bg-[rgba(14,16,20,0.9)] shadow-[0_18px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(214,255,62,0.06)]'
+      : 'border-[rgba(244,241,236,0.14)] bg-[rgba(18,20,26,0.42)] shadow-[0_16px_48px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]';
 
   const iconBtn = (active: boolean) =>
     active

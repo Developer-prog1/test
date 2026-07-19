@@ -240,13 +240,13 @@ export function AdminSidebar() {
       </div>
 
       {mobileOpen ? (
-        <aside className="mb-6 overflow-hidden rounded-[1.75rem] border border-[rgba(244,241,236,0.1)] bg-[linear-gradient(165deg,rgba(28,31,38,0.99),rgba(20,22,28,0.99))] shadow-[0_24px_60px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.05)] lg:hidden">
+        <aside className="mb-6 overflow-hidden rounded-[1.75rem] border border-[rgba(244,241,236,0.12)] bg-[linear-gradient(165deg,rgba(36,40,50,0.99),rgba(26,29,36,0.99))] shadow-[0_24px_60px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.06)] lg:hidden">
           <NavPanel onNavigate={() => setMobileOpen(false)} />
         </aside>
       ) : null}
 
       <aside
-        className="fixed bottom-0 left-0 top-[calc(var(--header-height)+0.35rem)] z-40 hidden w-[var(--admin-sidebar-width)] overflow-hidden border border-b-0 border-l-0 border-[rgba(244,241,236,0.1)] bg-[linear-gradient(165deg,rgba(26,29,36,0.98)_0%,rgba(18,20,26,0.99)_50%,rgba(15,17,22,1)_100%)] shadow-[12px_0_48px_rgba(0,0,0,0.45),inset_-1px_0_0_rgba(214,255,62,0.06),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl lg:block"
+        className="fixed bottom-0 left-0 top-[calc(var(--header-height)+0.35rem)] z-40 hidden w-[var(--admin-sidebar-width)] overflow-hidden border border-b-0 border-l-0 border-[rgba(244,241,236,0.12)] bg-[linear-gradient(165deg,rgba(34,38,48,0.98)_0%,rgba(24,27,34,0.99)_50%,rgba(20,23,30,1)_100%)] shadow-[12px_0_48px_rgba(0,0,0,0.45),inset_-1px_0_0_rgba(214,255,62,0.08),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl lg:block"
         style={{
           borderTopRightRadius: '2.25rem',
           borderBottomLeftRadius: '2.25rem',
