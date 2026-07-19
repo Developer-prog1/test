@@ -1,16 +1,18 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { ApiError, apiFetch, getAccessToken, setTokens } from '../api/client';
 import {
+  initialsFromUser,
   writeAuthUser,
   type AuthUser,
 } from '../lib/auth-session';
 import { Link } from '../../i18n/navigation';
 import { PasswordInput } from './password-input';
 import { Reveal } from './reveal';
+import { SafeImage } from './safe-image';
 
 export type SettingsProfile = AuthUser & {
   phone: string | null;
@@ -35,12 +37,24 @@ function splitFullName(fullName: string | null | undefined): {
   };
 }
 
+function syncSessionUser(data: SettingsProfile) {
+  writeAuthUser({
+    id: data.id,
+    email: data.email,
+    role: data.role,
+    fullName: data.fullName,
+    phone: data.phone,
+    avatarUrl: data.avatarUrl,
+  });
+}
+
 export function SettingsForm() {
   const t = useTranslations('settings');
   const tNav = useTranslations('nav');
   const tCommon = useTranslations('common');
   const tAuth = useTranslations('auth');
   const qc = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const me = useQuery({
     queryKey: ['auth-me'],
@@ -59,6 +73,8 @@ export function SettingsForm() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!me.data) return;
@@ -85,20 +101,53 @@ export function SettingsForm() {
       if (data.accessToken && data.refreshToken) {
         setTokens(data.accessToken, data.refreshToken);
       }
-      writeAuthUser({
-        id: data.id,
-        email: data.email,
-        role: data.role,
-        fullName: data.fullName,
-        phone: data.phone,
-        avatarUrl: data.avatarUrl,
-      });
+      syncSessionUser(data);
       void qc.invalidateQueries({ queryKey: ['auth-me'] });
     },
     onError: (err: unknown) => {
       setProfileMessage(null);
       setProfileError(
         err instanceof ApiError ? err.message : t('profileFailed'),
+      );
+    },
+  });
+
+  const uploadAvatar = useMutation({
+    mutationFn: (file: File) => {
+      const body = new FormData();
+      body.append('file', file);
+      return apiFetch<SettingsProfile>('/auth/me/avatar', {
+        method: 'POST',
+        body,
+      });
+    },
+    onSuccess: (data) => {
+      setAvatarError(null);
+      setAvatarMessage(t('avatarSaved'));
+      syncSessionUser(data);
+      void qc.invalidateQueries({ queryKey: ['auth-me'] });
+    },
+    onError: (err: unknown) => {
+      setAvatarMessage(null);
+      setAvatarError(
+        err instanceof ApiError ? err.message : t('avatarFailed'),
+      );
+    },
+  });
+
+  const removeAvatar = useMutation({
+    mutationFn: () =>
+      apiFetch<SettingsProfile>('/auth/me/avatar', { method: 'DELETE' }),
+    onSuccess: (data) => {
+      setAvatarError(null);
+      setAvatarMessage(t('avatarRemoved'));
+      syncSessionUser(data);
+      void qc.invalidateQueries({ queryKey: ['auth-me'] });
+    },
+    onError: (err: unknown) => {
+      setAvatarMessage(null);
+      setAvatarError(
+        err instanceof ApiError ? err.message : t('avatarFailed'),
       );
     },
   });
@@ -145,6 +194,15 @@ export function SettingsForm() {
     savePassword.mutate();
   }
 
+  function onAvatarFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setAvatarMessage(null);
+    setAvatarError(null);
+    uploadAvatar.mutate(file);
+  }
+
   if (!getAccessToken()) {
     return (
       <p className="text-[var(--muted)]">
@@ -164,12 +222,77 @@ export function SettingsForm() {
     return <p className="text-[var(--accent-hot)]">{tCommon('error')}</p>;
   }
 
+  const avatarBusy = uploadAvatar.isPending || removeAvatar.isPending;
+
   return (
     <div className="space-y-8">
       <Reveal>
         <p className="eyebrow mb-2">{t('eyebrow')}</p>
         <h1 className="display text-3xl font-bold sm:text-4xl">{t('title')}</h1>
         <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">{t('subtitle')}</p>
+      </Reveal>
+
+      <Reveal delay={0.04}>
+        <section className="card-glass space-y-5 p-5 sm:p-6">
+          <div>
+            <h2 className="display text-xl font-semibold">{t('avatarSection')}</h2>
+            <p className="mt-1 text-xs text-[var(--muted)]">{t('avatarHint')}</p>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-[rgba(214,255,62,0.45)] bg-[rgba(214,255,62,0.1)] shadow-[0_0_24px_rgba(214,255,62,0.12)]">
+              {me.data.avatarUrl ? (
+                <SafeImage
+                  src={me.data.avatarUrl}
+                  alt={me.data.fullName ?? me.data.email}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-2xl font-bold tracking-wide text-[var(--accent)]">
+                  {initialsFromUser(me.data)}
+                </span>
+              )}
+            </div>
+
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                onChange={onAvatarFileChange}
+              />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={avatarBusy}
+                  className="btn btn-primary disabled:opacity-60"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploadAvatar.isPending ? t('uploading') : t('uploadAvatar')}
+                </button>
+                {me.data.avatarUrl ? (
+                  <button
+                    type="button"
+                    disabled={avatarBusy}
+                    className="btn btn-ghost disabled:opacity-60"
+                    onClick={() => removeAvatar.mutate()}
+                  >
+                    {removeAvatar.isPending ? t('saving') : t('removeAvatar')}
+                  </button>
+                ) : null}
+              </div>
+              <p className="text-xs text-[var(--muted)]">{t('avatarFormats')}</p>
+              {avatarError ? (
+                <p className="text-sm text-[var(--accent-hot)]">{avatarError}</p>
+              ) : null}
+              {avatarMessage ? (
+                <p className="text-sm text-[var(--accent)]">{avatarMessage}</p>
+              ) : null}
+            </div>
+          </div>
+        </section>
       </Reveal>
 
       <Reveal delay={0.06}>

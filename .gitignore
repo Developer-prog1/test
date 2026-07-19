@@ -24,6 +24,10 @@ tmp/
 temp/
 .cache/
 
+# Local avatar / media uploads (API disk fallback)
+uploads/
+apps/api/uploads/
+
 # IDE (optional, uncomment if needed)
 # .idea/
 # .vscode/
